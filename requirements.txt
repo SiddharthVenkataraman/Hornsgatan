@@ -1,0 +1,8 @@
+# Only packages directly used in the project
+pandas
+sumolib
+traci
+hamilton
+jupyter
+notebook
+python-logging
