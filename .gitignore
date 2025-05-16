@@ -19,4 +19,4 @@ src/map/Hornsgatan.osm
 
 # Ignore everything in data folder except demand.csv
 data/*
-!data/map/Hornsgatan.net.xml
+!map/Hornsgatan.net.xml
