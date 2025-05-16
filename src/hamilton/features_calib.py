@@ -394,59 +394,6 @@ def setup_traci_simulation(
     return sumo_binary
 
 
-def calibrated_data(
-    trips: pd.DataFrame, 
-    sumo_config: str, 
-    detector_mappings: Dict, 
-    detector: str, 
-    maxspeed: float, 
-    path: str, 
-    postfix: str, 
-    pathout: str,
-    iteration: int = 30,
-) -> pd.DataFrame:
-    """Run the calibration process for all vehicles.
-    
-    Args:
-        trips: Trips DataFrame
-        detector: Detector ID
-        maxspeed: Maximum speed value
-        path: Output path
-        postfix: Postfix for filenames
-        iteration: Maximum number of iterations
-        
-    Returns:
-        DataFrame with calibration results
-    """
-    
-    setup_traci_simulation(
-    sumo_config, 
-    trips, 
-    detector, 
-    detector_mappings, 
-    path, 
-    postfix) 
-    
-    trips["departSpeed"] = maxspeed
-    trips["speed_factor"] = 1
-    
-    mylog = []
-    step = 0
-    
-    for index, row in trips.iterrows():
-        result = _calibrate_single_vehicle(dict(row), detector, maxspeed, path, postfix, iteration, mylog)
-        mylog.append(result)
-        step += 1
-    
-    if traci.isLoaded():
-        traci.close()
-    out_df = pd.DataFrame(mylog)
-    out_df["delta_time"] = out_df["time_detector_sim"] - out_df["time_detector_real"]
-    out_df["delta_speed"] = out_df["speed_detector_sim"] - out_df["speed_detector_real"]
-    out_df.to_csv(f"{pathout}calibrated_data_{postfix}.csv", index=False)
-    return out_df
-
-
 def _calibrate_single_vehicle(
     row: dict, 
     detector: str, 
@@ -591,6 +538,58 @@ def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str) -> 
             return time, speed
     
     return None
+
+def calibrated_data(
+    trips: pd.DataFrame, 
+    sumo_config: str, 
+    detector_mappings: Dict, 
+    detector: str, 
+    maxspeed: float, 
+    path: str, 
+    postfix: str, 
+    pathout: str,
+    iteration: int = 30,
+) -> pd.DataFrame:
+    """Run the calibration process for all vehicles.
+    
+    Args:
+        trips: Trips DataFrame
+        detector: Detector ID
+        maxspeed: Maximum speed value
+        path: Output path
+        postfix: Postfix for filenames
+        iteration: Maximum number of iterations
+        
+    Returns:
+        DataFrame with calibration results
+    """
+    
+    setup_traci_simulation(
+    sumo_config, 
+    trips, 
+    detector, 
+    detector_mappings, 
+    path, 
+    postfix) 
+    
+    trips["departSpeed"] = maxspeed
+    trips["speed_factor"] = 1
+    
+    mylog = []
+    step = 0
+    
+    for index, row in trips.iterrows():
+        result = _calibrate_single_vehicle(dict(row), detector, maxspeed, path, postfix, iteration, mylog)
+        mylog.append(result)
+        step += 1
+    
+    if traci.isLoaded():
+        traci.close()
+    out_df = pd.DataFrame(mylog)
+    out_df["delta_time"] = out_df["time_detector_sim"] - out_df["time_detector_real"]
+    out_df["delta_speed"] = out_df["speed_detector_sim"] - out_df["speed_detector_real"]
+    out_df.to_csv(f"{pathout}calibrated_data_{postfix}.csv", index=False)
+    return out_df
 
 
 
