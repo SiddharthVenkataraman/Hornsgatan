@@ -18,10 +18,17 @@ src/map/Hornsgatan.osm
 *.log
 
 # Ignore everything in data folder except demand.csv
-data/*
-!data/map/
-!data/calibration_data/
-!data/raw_data/
+data/calibration_data/*
+!data/calibration_data/.gitkeep
+
+data/calibration_intermediate_data/*
+!data/calibration_intermediate_data/.gitkeep
+
+data/sim_data/*
+!data/sim_data/.gitkeep
+
+data/sim_intermediate_data/*
+!data/sim_intermediate_data/.gitkeep
 
 data/map/*
 !data/map/Hornsgatan.net.xml
