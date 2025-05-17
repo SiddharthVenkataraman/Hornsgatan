@@ -12,7 +12,7 @@ def _base_config() -> Dict[str, str]:
         """Return base configuration parameters for the simulation."""
         return {
             "date": "2020-01-01",
-            "detector": "w2e_in",
+            "detector": "e2w_in",
             "path": "data/sim_intermediate_data/",
             "pathout": "data/sim_data/",
             "pathin": "data/calibration_data/",
@@ -24,7 +24,7 @@ def _base_config() -> Dict[str, str]:
 config = _base_config()
 
 tracker = adapters.HamiltonTracker(
-project_id=4,  # modify this as needed
+project_id=1,  # modify this as needed
 username="kaveh",
 dag_name=f"simulation_{config['date']}_{config['detector']}_{config['init_number']}",
 tags={"environment": "DEV", "team": "MY_TEAM", "version": "X"},
