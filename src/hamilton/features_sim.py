@@ -116,8 +116,8 @@ def instant_induction_loop_add_file(
     Returns:
         Generated XML string
     """
-    instantInductionLoop_filename_xml =  f"../../{pathout}instanceInductionLoop_{postfix}.xml"
-    instantInductionLoop_filename_add =  f"instanceInductionLoop_{postfix}.add.xml"
+    instantInductionLoop_filename_xml =  f"../../{pathout}instantInductionLoop_{postfix}.xml"
+    instantInductionLoop_filename_add =  f"instantInductionLoop_{postfix}.add.xml"
     
     instant_induction_loops = [
         {"id": detector, "lane": detector_mappings['detector2lane'][detector], "pos": "1", "file": instantInductionLoop_filename_xml},
@@ -234,6 +234,8 @@ def sumo_config(network_file: str, instant_induction_loop_add_file: str, trips: 
     </output>
     <processing>
         <default.speeddev value="0"/>
+        <emergency-insert value="true"/>
+        <random-depart-offset value="0"/>
     </processing>
     <time>
         <begin value="{start_time}"/>
@@ -278,7 +280,7 @@ def setup_logging(postfix: str) -> str:
 
 
 def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict], 
-             maxspeed: float, trips: pd.DataFrame, pathout:str) -> str:
+             maxspeed: float, trips: pd.DataFrame, pathout:str,postfix: str) -> str:
 
     # Start the SUMO simulation
     sumo_binary = "sumo"  # Use "sumo-gui" if you want to visualize the simulation

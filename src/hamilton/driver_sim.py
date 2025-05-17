@@ -25,7 +25,7 @@ config = _base_config()
 tracker = adapters.HamiltonTracker(
 project_id=4,  # modify this as needed
 username="kaveh",
-dag_name=f"test_{config['date']}_{config['detector']}_{config['init_number']}",
+dag_name=f"simulation_{config['date']}_{config['detector']}_{config['init_number']}",
 tags={"environment": "DEV", "team": "MY_TEAM", "version": "X"},
 )
 

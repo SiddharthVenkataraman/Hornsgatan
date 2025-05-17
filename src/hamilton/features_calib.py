@@ -457,7 +457,7 @@ def _calibrate_single_vehicle(
                 departSpeed="max",
                 departLane=row["departLane"],
             )
-            traci.vehicle.setSpeedMode(row['id'], 95)
+            #traci.vehicle.setSpeedMode(row['id'], 95)
             traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
             row["departSpeed"] = row["speed_factor"] * maxspeed
             traci.vehicle.setLaneChangeMode(row['id'], 0)
@@ -520,14 +520,14 @@ def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str) -> 
     
     while traci.simulation.getMinExpectedNumber() > 0:
         if traci.simulation.getTime() == int(row["depart"]) + 1:
-            traci.vehicle.setSpeed(row["id"], row["departSpeed"])
-            traci.vehicle.setLaneChangeMode(row["id"], 0)
+            #traci.vehicle.setSpeed(row["id"], row["departSpeed"])
+            #traci.vehicle.setLaneChangeMode(row["id"], 0)
             traci.simulation.saveState(f"{path}simulation_{postfix}_next.sumo.state")
         
         traci.simulationStep()
         
-        for veh_id in traci.simulation.getDepartedIDList():
-            traci.vehicle.setLaneChangeMode(veh_id, 0)
+        #for veh_id in traci.simulation.getDepartedIDList():
+        #    traci.vehicle.setLaneChangeMode(veh_id, 0)
         
         vehicles = traci.inductionloop.getLastStepVehicleIDs(detector)
         
