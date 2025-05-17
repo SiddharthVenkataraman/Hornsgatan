@@ -21,6 +21,9 @@ src/map/Hornsgatan.osm
 data/calibration_data/*
 !data/calibration_data/.gitkeep
 
+data/daily_splitted_data/*
+!data/daily_splitted_data/.gitkeep
+
 data/calibration_intermediate_data/*
 !data/calibration_intermediate_data/.gitkeep
 
