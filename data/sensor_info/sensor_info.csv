@@ -1,0 +1,5 @@
+node_id,direction,lane_position,detector_id
+an0005_r1,Towards West,closer,e2w_in
+an0005_r2,Towards East,away,w2e_out
+an0005_r3,Towards East,closer,w2e_in
+an0005_r4,Towards West,away,e2w_out
