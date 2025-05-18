@@ -16,8 +16,8 @@ def _base_config() -> Dict[str, str]:
             "path": "data/calibration_intermediate_data/",
             "pathout": "data/calibration_data/",
             "pathin": "data/daily_splitted_data/",
-            "iteration": 50,
-            "init_number" : 20,
+            "iteration": 20,
+            "init_number" : 100,
             "network_file": "data/map/Hornsgatan.net.xml",
             "hornsgatan_home": "/home/kaveh/Hornsgatan/"
         }
