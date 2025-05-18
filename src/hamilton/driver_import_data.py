@@ -1,9 +1,11 @@
 from hamilton import driver, base
-import features_import_data
 import os
 from hamilton_sdk import adapters
 from hamilton import driver
 
+from . import features_import_data
+from ..tools import mytools
+myconfig = mytools.read_config()
 # Replace with your target path
 #os.chdir(".")
 
@@ -11,7 +13,7 @@ from hamilton import driver
 #print("Current directory:", os.getcwd())
 
 tracker = adapters.HamiltonTracker(
-project_id=4,  # modify this as needed
+project_id= myconfig["project_id"],  # modify this as needed
 username="kaveh",
 dag_name="Import Data",
 tags={"environment": "DEV", "team": "MY_TEAM", "version": "X"},

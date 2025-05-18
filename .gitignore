@@ -10,10 +10,11 @@ __pycache__/
 # Ignore all files in the output directory
 output/
 
-
 # Ignore a specific file
 nohup.out
 src/map/Hornsgatan.osm
+config.ini
+
 # Ignore all `.log` files
 *.log
 
