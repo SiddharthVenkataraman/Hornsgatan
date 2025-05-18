@@ -34,5 +34,8 @@ data/sim_data/*
 data/sim_intermediate_data/*
 !data/sim_intermediate_data/.gitkeep
 
+data/calibration_data/*
+!data/calibration_data/.gitkeep
+
 data/map/*
 !data/map/Hornsgatan.net.xml
