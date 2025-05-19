@@ -539,15 +539,14 @@ def _calibrate_single_vehicle_v2(
     depart_max = max(row["time_detector_real"] - 10, depart_min +1)
     
     
-    speed_factor_min = 0.5
-    speed_factor_max = 3.0
+    speed_factor_min = 0.6
+    speed_factor_max = 3.2
     
     bounds = [Integer(depart_min, depart_max), (speed_factor_min, speed_factor_max)]
     logger.info(row)
     logger.info(f"bounds = {bounds}")
     # --- Initialize Bayesian Optimizer ---
-    opt = Optimizer(dimensions=bounds, base_estimator='GP', acq_func='EI')
-    seen_points = set()
+    opt = Optimizer(dimensions=bounds, base_estimator='GP', acq_func="LCB")
     for i in range(iteration):
         x_next = opt.ask()                 # Propose next point
 
@@ -564,10 +563,9 @@ def _calibrate_single_vehicle_v2(
         speed_error = speed - row["speed_detector_real"]
 
 
-        y_next = abs(time_error) + abs(speed_error)
+        y_next = (time_error)**2 + (speed_error)**2
         
 
-        last_y = y_next
         opt.tell(x_next, y_next)          # Give result to optimizer
         #logger.info(f"Iter {i}: Input={x_next}, Error={y_next:.4f}, time_error={time_error},  speed_error={speed_error}")
         
