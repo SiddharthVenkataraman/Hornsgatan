@@ -1,4 +1,29 @@
 import configparser
+import logging
+
+# Logging setup
+def setup_logging(postfix: str) -> str:
+    """Set up logging for the simulation.
+    
+    Args:
+        postfix: Postfix for log filename
+        
+    Returns:
+        Path to log file
+    """
+    logfile_name = f"log/simulation_{postfix}.log"
+    logger = logging.getLogger("calib")
+
+    logging.basicConfig(
+        filename=logfile_name,
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    logger.info("Simulation started.")
+    return logfile_name
+
+
 
 def create_config(filename = 'config.ini' ):
     config = configparser.ConfigParser()

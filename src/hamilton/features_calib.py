@@ -9,14 +9,17 @@ import os
 from typing import Dict, List, Optional, Tuple, Any, Union
 import pandas as pd
 import xml.etree.ElementTree as ET
-import logging
+#from ..tools import mytools
 import traci
 from math import ceil
 from hamilton import driver
 from hamilton.function_modifiers import extract_fields, source
 from skopt import Optimizer
 import numpy as np
+from skopt.space import Integer
+import logging
 
+logger = logging.getLogger("calib")
 
 
 def maxspeed(detector: str) -> float:
@@ -348,25 +351,7 @@ def sumo_config(network_file: str, induction_loop_add_file: str, trips: pd.DataF
     return config_file_name
 
 
-# Logging setup
-def setup_logging(postfix: str) -> str:
-    """Set up logging for the simulation.
-    
-    Args:
-        postfix: Postfix for log filename
-        
-    Returns:
-        Path to log file
-    """
-    logfile_name = f"log/simulation_{postfix}.log"
-    logging.basicConfig(
-        filename=logfile_name,
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    logging.info("Simulation started.")
-    return logfile_name
+
 
 
 # Calibration process
@@ -432,7 +417,7 @@ def _calibrate_single_vehicle(
     traci.simulation.loadState(f"{path}simulation_{postfix}_next.sumo.state")
     traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
     
-    logging.info(f"Processing vehicle ID: {row['id']}")
+    logger.info(f"Processing vehicle ID: {row['id']}")
     
     time_error = 10
     speed_error = 10
@@ -451,8 +436,7 @@ def _calibrate_single_vehicle(
         try:
             traci.simulation.loadState(f"{path}simulation_{postfix}.sumo.state")
         except traci.FatalTraCIError as e:
-            print("Error loading simulation state:", e)
-            logging.error(f"Error loading simulation state: {e}")
+            logger.error(f"Error loading simulation state: {e}")
             traci.close()
             raise
         
@@ -474,8 +458,7 @@ def _calibrate_single_vehicle(
             row["departSpeed"] = row["speed_factor"] * maxspeed
             traci.vehicle.setLaneChangeMode(row['id'], 0)
         except traci.TraCIException as e:
-            print(f"Error adding vehicle {row['id']}:", e)
-            logging.error(f"Error adding vehicle {row['id']}: {e}")
+            logger.error(f"Error adding vehicle {row['id']}: {e}")
             traci.close()
             raise
         
@@ -541,7 +524,7 @@ def _calibrate_single_vehicle_v2(
     #traci.simulation.loadState(f"{path}simulation_{postfix}_next.sumo.state")
     #traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
     
-    logging.info(f"Processing vehicle ID: {row['id']}")
+    logger.info(f"Processing vehicle ID: {row['id']}")
     
     time = None
     speed = None
@@ -555,17 +538,19 @@ def _calibrate_single_vehicle_v2(
         
     depart_max = row["time_detector_real"] - 10
     
+    
     speed_factor_min = 0.5
     speed_factor_max = 3.0
     
-    bounds = [(depart_min, depart_max), (speed_factor_min, speed_factor_max)]
-    print(row)
-    print(bounds)
+    bounds = [Integer(depart_min, depart_max), (speed_factor_min, speed_factor_max)]
+    logger.info(row)
+    logger.info(f"bounds = {bounds}")
     # --- Initialize Bayesian Optimizer ---
     opt = Optimizer(dimensions=bounds, base_estimator='GP', acq_func='EI')
-
+    seen_points = set()
     for i in range(iteration):
         x_next = opt.ask()                 # Propose next point
+        seen_points.add(x_key)
         row['depart'] = x_next[0]
         row["speed_factor"] = x_next[1]
         time_speed = _run_simulation_steps_v2(row, detector, path, postfix, i, maxspeed=maxspeed)
@@ -574,21 +559,26 @@ def _calibrate_single_vehicle_v2(
             time_list.append(time)
             speed_list.append(speed)
         else:
-            print("errorrrrrrrrrrr in time-speeeeeeeed")
+            logger.info("errorrrrrrrrrrr in time-speeeeeeeed")
         time_error = time-row["time_detector_real"]
         speed_error = speed - row["speed_detector_real"]
+
+
         y_next = abs(time_error) + abs(speed_error)
+        
+
+        last_y = y_next
         opt.tell(x_next, y_next)          # Give result to optimizer
-        #print(f"Iter {i}: Input={x_next}, Error={y_next:.4f}, time_error={time_error},  speed_error={speed_error}")
+        #logger.info(f"Iter {i}: Input={x_next}, Error={y_next:.4f}, time_error={time_error},  speed_error={speed_error}")
         
     # --- Best result ---
     best_index = np.argmin(opt.yi)
     best_x = opt.Xi[best_index]
     best_y = min(opt.yi)
-    print(f"\nBest estimate: index = {best_index}" )
-    print(f"Depart time: {best_x[0]:.2f} s, Depart speed: {best_x[1]:.2f} m/s")
-    print(f"Minimum error: {best_y:.4f}")
-    print(f"best_time_error={time_list[best_index]-row["time_detector_real"]}, best_speed_error={speed_list[best_index]-row["speed_detector_real"]} ")
+    logging.info(f"Best estimate: index = {best_index}" )
+    #logging(f"Depart time: {best_x[0]:.2f} s, Depart speed: {best_x[1]:.2f} m/s")
+    #logging(f"Minimum error: {best_y:.4f}")
+    logging.info(f"best_time_error={time_list[best_index]-row['time_detector_real']}, best_speed_error={speed_list[best_index]-row['speed_detector_real']} ")
     
     traci.simulation.loadState(f"{path}simulation_{postfix}_{best_index}.sumo.state")
     traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
@@ -624,8 +614,7 @@ def _run_simulation_steps_v2(row: dict, detector: str, path: str, postfix: str, 
     try:
         traci.simulation.loadState(f"{path}simulation_{postfix}.sumo.state")
     except traci.FatalTraCIError as e:
-        print("Error loading simulation state:", e)
-        logging.error(f"Error loading simulation state: {e}")
+        logger.error(f"Error loading simulation state: {e}")
         traci.close()
         raise
 
@@ -647,8 +636,7 @@ def _run_simulation_steps_v2(row: dict, detector: str, path: str, postfix: str, 
         row["departSpeed"] = row["speed_factor"] * maxspeed
         traci.vehicle.setLaneChangeMode(row['id'], 0)
     except traci.TraCIException as e:
-        print(f"Error adding vehicle {row['id']}:", e)
-        logging.error(f"Error adding vehicle {row['id']}: {e}")
+        logger.error(f"Error adding vehicle {row['id']}: {e}")
         traci.close()
         raise
     
