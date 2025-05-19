@@ -18,7 +18,7 @@ def _base_config() -> Dict[str, str]:
         "pathout": "data/calibration_data/",
         "pathin": "data/daily_splitted_data/",
         "iteration": 30,
-        "init_number" : 0,
+        "init_number" : 1,
         "network_file": "data/map/Hornsgatan.net.xml",
         "hornsgatan_home": "/home/kaveh/Hornsgatan/"
     }
@@ -30,7 +30,7 @@ else:
     postfix = f"{config['detector']}_{config['date']}_{config['init_number']}"
 
 mytools.setup_logging(postfix)
-logger = logging.getLogger(calib)
+logger = logging.getLogger("calib")
 
 """
 tracker = adapters.HamiltonTracker(
