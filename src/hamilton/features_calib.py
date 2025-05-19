@@ -550,7 +550,7 @@ def _calibrate_single_vehicle_v2(
     seen_points = set()
     for i in range(iteration):
         x_next = opt.ask()                 # Propose next point
-        seen_points.add(x_key)
+
         row['depart'] = x_next[0]
         row["speed_factor"] = x_next[1]
         time_speed = _run_simulation_steps_v2(row, detector, path, postfix, i, maxspeed=maxspeed)
