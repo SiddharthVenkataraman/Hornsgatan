@@ -30,7 +30,7 @@ else:
     postfix = f"{config['detector']}_{config['date']}_{config['init_number']}"
 
 mytools.setup_logging(postfix)
-logger = logging.getLogger(postfix)
+logger = logging.getLogger(calib)
 
 """
 tracker = adapters.HamiltonTracker(
