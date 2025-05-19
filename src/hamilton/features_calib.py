@@ -532,11 +532,11 @@ def _calibrate_single_vehicle_v2(
     speed_list = []
     
     if len(mylog) > 0:
-        depart_min = mylog[-1]["depart"]+1
+        depart_min = mylog[-1]["depart"]
     else:
         depart_min = row["time_detector_real"] - 100
         
-    depart_max = row["time_detector_real"] - 10
+    depart_max = max(row["time_detector_real"] - 10, depart_min +1)
     
     
     speed_factor_min = 0.5
@@ -576,8 +576,8 @@ def _calibrate_single_vehicle_v2(
     best_x = opt.Xi[best_index]
     best_y = min(opt.yi)
     logging.info(f"Best estimate: index = {best_index}" )
-    #logging(f"Depart time: {best_x[0]:.2f} s, Depart speed: {best_x[1]:.2f} m/s")
-    #logging(f"Minimum error: {best_y:.4f}")
+    logging.info(f"Depart time: {best_x[0]:.2f} s, factor speed: {best_x[1]:.2f} ")
+    logging.info(f"Minimum error: {best_y:.4f}")
     logging.info(f"best_time_error={time_list[best_index]-row['time_detector_real']}, best_speed_error={speed_list[best_index]-row['speed_detector_real']} ")
     
     traci.simulation.loadState(f"{path}simulation_{postfix}_{best_index}.sumo.state")
@@ -645,7 +645,7 @@ def _run_simulation_steps_v2(row: dict, detector: str, path: str, postfix: str, 
     
     while traci.simulation.getMinExpectedNumber() > 0:
         #print(f"step  = {traci.simulation.getTime()}  , depart  = {row["depart"]}")
-        if traci.simulation.getTime() == int(row["depart"]) + 1:
+        if traci.simulation.getTime() == int(row["depart"]):
             traci.simulation.saveState(f"{path}simulation_{postfix}_{iteration_number}.sumo.state")
             #print (f"depart = {row["depart"]}, step = {traci.simulation.getMinExpectedNumber()}, ite = {iteration_number}" )
         

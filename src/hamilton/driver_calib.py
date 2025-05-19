@@ -13,12 +13,12 @@ def _base_config() -> Dict[str, str]:
     """Return base configuration parameters for the simulation."""
     return {
         "date": "2020-01-01",
-        "detector": "e2w_in",
+        "detector": "e2w_out",
         "path": "data/calibration_intermediate_data/",
         "pathout": "data/calibration_data/",
         "pathin": "data/daily_splitted_data/",
         "iteration": 30,
-        "init_number" : 1,
+        "init_number" : 1000,
         "network_file": "data/map/Hornsgatan.net.xml",
         "hornsgatan_home": "/home/kaveh/Hornsgatan/"
     }
