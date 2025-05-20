@@ -1,5 +1,7 @@
 import configparser
 import logging
+import os
+
 
 # Logging setup
 def setup_logging(postfix: str) -> str:
@@ -59,3 +61,22 @@ def read_config(filename = 'config.ini'):
     }
 
     return config_values
+
+
+def delete_all_except_list(directory, keep_files):
+    """
+    Delete all files in the given directory except those listed.
+
+    Args:
+        directory (str): Path to the target directory.
+        keep_files (list): Filenames to keep (not full paths).
+    """
+    for fname in os.listdir(directory):
+        fpath = os.path.join(directory, fname)
+
+        if os.path.isfile(fpath) and fname not in keep_files:
+            try:
+                os.remove(fpath)
+                print(f"Deleted: {fpath}")
+            except Exception as e:
+                print(f"Failed to delete {fpath}: {e}")
