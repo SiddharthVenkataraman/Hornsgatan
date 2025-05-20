@@ -14,31 +14,31 @@ def _base_config() -> Dict[str, str]:
         """Return base configuration parameters for the simulation."""
         return {
             "date": "2020-01-01",
-            "detector": "w2e_in",
+            "detector": "w2e_out",
             "path": "data/sim_intermediate_data/",
             "pathout": "data/sim_data/",
             "pathin": "data/calibration_data/",
-            "init_number" : 19,
+            "init_number" : 0,
             #"number": 100,
             "network_file": "data/map/Hornsgatan.net.xml",
             "hornsgatan_home": "/home/kaveh/Hornsgatan/"
         }
 config = _base_config()
-
+"""
 tracker = adapters.HamiltonTracker(
 project_id= myconfig["project_id"],  # modify this as needed
 username="kaveh",
 dag_name=f"simulation_{config['date']}_{config['detector']}_{config['init_number']}",
 tags={"environment": "DEV", "team": "MY_TEAM", "version": "X"},
 )
-
+"""
 
 dr = (
     driver.Builder()
     .with_config(config)  # we don't have any configuration or invariant data for this example.
     .with_modules(features_sim)  # we need to tell hamilton where to load function definitions from
     .with_adapters(base.DictResult)  # we want a pandas dataframe as output
-    .with_adapters(tracker)
+    .with_adapters(base)#tracker)
     .build()
 )
 
