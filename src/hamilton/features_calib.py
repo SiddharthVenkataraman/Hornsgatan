@@ -532,11 +532,11 @@ def _calibrate_single_vehicle_v2(
     speed_list = []
     
     if len(mylog) > 0:
-        depart_min = mylog[-1]["depart"]
+        depart_min = mylog[-1]["depart"]+1
     else:
         depart_min = row["time_detector_real"] - 100
         
-    depart_max = max(row["time_detector_real"] - 10, depart_min +1)
+    depart_max = max(row["time_detector_real"] - 10, depart_min +2)
     
     
     speed_factor_min = 0.6
@@ -630,7 +630,6 @@ def _run_simulation_steps_v2(row: dict, detector: str, path: str, postfix: str, 
             departLane=row["departLane"],
         )
         #traci.vehicle.setSpeedMode(row['id'], 95)
-        traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
         row["departSpeed"] = row["speed_factor"] * maxspeed
         traci.vehicle.setLaneChangeMode(row['id'], 0)
     except traci.TraCIException as e:
@@ -639,6 +638,7 @@ def _run_simulation_steps_v2(row: dict, detector: str, path: str, postfix: str, 
         raise
     
     traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
+    traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
 
     
     while traci.simulation.getMinExpectedNumber() > 0:

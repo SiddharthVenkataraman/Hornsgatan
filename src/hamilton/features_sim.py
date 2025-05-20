@@ -257,26 +257,6 @@ def sumo_config(network_file: str, instant_induction_loop_add_file: str, trips: 
 
 
 
-# Logging setup
-def setup_logging(postfix: str) -> str:
-    """Set up logging for the simulation.
-    
-    Args:
-        postfix: Postfix for log filename
-        
-    Returns:
-        Path to log file
-    """
-    logfile_name = f"log/simulation_{postfix}.log"
-    logging.basicConfig(
-        filename=logfile_name,
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    logging.info("Simulation started.")
-    return logfile_name
-
 
 
 def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict], 
@@ -299,7 +279,6 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
                     #speedFactor = 1.2
                 )
                 #traci.vehicle.setSpeedMode(row['id'], 95)
-                traci.vehicle.setSpeed(row['id'], row["speed_factor"]*maxspeed)
                 row["departSpeed"] = row["speed_factor"]*maxspeed                
                 traci.vehicle.setLaneChangeMode(row['id'], 0)
                 
@@ -309,6 +288,11 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
                 raise
             
             traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
+            traci.vehicle.setSpeed(row['id'], row["speed_factor"]*maxspeed)
+
+    path = "data/sim_intermediate_data/"
+    traci.simulation.saveState(f"{path}simulation_{postfix}_test.sumo.state")
+
     # Run the simulation step by step
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
