@@ -398,114 +398,10 @@ def _calibrate_single_vehicle(
     path: str, 
     postfix: str, 
     iteration: int, 
-    mylog: List#[Dict[str, Any]]
-) -> Dict[str, Any]:
-    """Calibrate a single vehicle in the simulation.
-    
-    Args:
-        row: Vehicle data row
-        detector: Detector ID
-        maxspeed: Maximum speed value
-        path: Output path
-        postfix: Postfix for filenames
-        iteration: Maximum number of iterations
-        mylog: List of calibration results
-        
-    Returns:
-        Dictionary with calibration result for this vehicle
-    """
-    traci.simulation.loadState(f"{path}simulation_{postfix}_next.sumo.state")
-    traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
-    
-    logger.info(f"Processing vehicle ID: {row['id']}")
-    
-    time_error = 10
-    speed_error = 10
-    count = 0
-    time = None
-    speed = None
-    prow = row.copy()
-    
-    # Adjust depart time for consecutive vehicles
-    if len(mylog) > 0 and count == 1:
-        row["depart"] = mylog[-1]["depart"] + (row["time_detector_real"] - mylog[-1]["time_detector_real"])
-    
-    while (count < iteration) and ((abs(time_error) > 2) or abs(speed_error) > 1):
-        count += 1
-        
-        try:
-            traci.simulation.loadState(f"{path}simulation_{postfix}.sumo.state")
-        except traci.FatalTraCIError as e:
-            logger.error(f"Error loading simulation state: {e}")
-            traci.close()
-            raise
-        
-        # Remove the vehicle if it exists
-        if row['id'] in traci.vehicle.getIDList():
-            traci.vehicle.remove(row['id'])
-        
-        try:
-            traci.vehicle.addFull(
-                vehID=row['id'],
-                routeID=f"{row['detector_id']}_route",
-                depart=row["depart"],
-                departPos="0",
-                departSpeed="max",
-                departLane=row["departLane"],
-            )
-            #traci.vehicle.setSpeedMode(row['id'], 95)
-            traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
-            row["departSpeed"] = row["speed_factor"] * maxspeed
-            traci.vehicle.setLaneChangeMode(row['id'], 0)
-        except traci.TraCIException as e:
-            logger.error(f"Error adding vehicle {row['id']}: {e}")
-            traci.close()
-            raise
-        
-        traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
-        
-        time_speed = _run_simulation_steps(row, detector, path, postfix)
-        if time_speed is not None:
-            time, speed = time_speed
-            
-            time_error = time - row["time_detector_real"]
-            speed_error = speed - row["speed_detector_real"]
-            
-            prow = row.copy()
-            row["depart"] = row["depart"] - (time - row["time_detector_real"])
-            
-            if len(mylog) > 0 and row["depart"] <= mylog[-1]["depart"]:
-                row["depart"] = mylog[-1]["depart"] + 1
-            
-            if speed_error > 0 and speed_error > 1:
-                row["speed_factor"] = max(.9, row["speed_factor"] - 0.01)
-            if speed_error <= 0 and speed_error < -.3:
-                row["speed_factor"] = min(3, row["speed_factor"] + 0.1)
-            
-            row["departSpeed"] = maxspeed
-            if row['speed_factor'] != 1:
-                row["departSpeed"] = maxspeed * row["speed_factor"]
-    
-    return {
-        "veh_id": prow["id"],
-        "time_detector_sim": time,
-        "speed_detector_sim": speed,
-        "speed_factor": prow["speed_factor"],
-        "time_detector_real": prow["time_detector_real"],
-        "depart": prow["depart"],
-        "departSpeed": prow["departSpeed"],
-        "speed_detector_real": prow["speed_detector_real"]
-    }
-
-
-def _calibrate_single_vehicle_v2(
-    row: dict, 
-    detector: str, 
-    maxspeed: float, 
-    path: str, 
-    postfix: str, 
-    iteration: int, 
-    mylog: List#[Dict[str, Any]]
+    mylog: List,
+    base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
+    acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
+    n_initial_points: int,
 ) -> Dict[str, Any]:
     """Calibrate a single vehicle in the simulation.
     
@@ -542,17 +438,20 @@ def _calibrate_single_vehicle_v2(
     speed_factor_min = 0.6
     speed_factor_max = 3.2
     
-    bounds = [Integer(depart_min, depart_max), (speed_factor_min, speed_factor_max)]
+    bounds = [Integer(depart_min, depart_max), Integer(int(speed_factor_min*50), int(speed_factor_max*50))]
+    #bounds = [Integer(0, depart_max-depart_min), (speed_factor_min, speed_factor_max)]
+
     logger.info(row)
     logger.info(f"bounds = {bounds}")
     # --- Initialize Bayesian Optimizer ---
-    opt = Optimizer(dimensions=bounds, base_estimator='GP', acq_func="LCB")
+    opt = Optimizer(dimensions=bounds, base_estimator=base_estimator, acq_func=acq_func, n_initial_points=n_initial_points)
     for i in range(iteration):
         x_next = opt.ask()                 # Propose next point
+        row['depart'] = x_next[0]+depart_min
+        row["speed_factor"] = x_next[1]/50
+        #row["speed_factor"] = x_next[1]
 
-        row['depart'] = x_next[0]
-        row["speed_factor"] = x_next[1]
-        time_speed = _run_simulation_steps_v2(row, detector, path, postfix, i, maxspeed=maxspeed)
+        time_speed = _run_simulation_steps(row, detector, path, postfix, i, maxspeed=maxspeed)
         if time_speed is not None:
             time, speed = time_speed
             time_list.append(time)
@@ -574,7 +473,7 @@ def _calibrate_single_vehicle_v2(
     best_x = opt.Xi[best_index]
     best_y = min(opt.yi)
     logging.info(f"Best estimate: index = {best_index}" )
-    logging.info(f"Depart time: {best_x[0]:.2f} s, factor speed: {best_x[1]:.2f} ")
+    logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {(best_x[1]/50):.2f} ")
     logging.info(f"Minimum error: {best_y:.4f}")
     logging.info(f"best_time_error={time_list[best_index]-row['time_detector_real']}, best_speed_error={speed_list[best_index]-row['speed_detector_real']} ")
     
@@ -585,16 +484,18 @@ def _calibrate_single_vehicle_v2(
         "veh_id": row["id"],
         "time_detector_sim": time_list[best_index],
         "speed_detector_sim": speed_list[best_index],
-        "speed_factor": best_x[1],
+        "speed_factor": round((best_x[1]/50),2),
+        #"speed_factor": round(best_x[1],2),
+
         "time_detector_real": row["time_detector_real"],
-        "depart": best_x[0],
+        "depart": best_x[0]+depart_min,
         "departSpeed": "max",
         "speed_detector_real": row["speed_detector_real"]
     }
 
 
 
-def _run_simulation_steps_v2(row: dict, detector: str, path: str, postfix: str, iteration_number:int, maxspeed: float) -> Optional[Tuple[float, float]]:
+def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str, iteration_number:int, maxspeed: float) -> Optional[Tuple[float, float]]:
     """Run simulation steps until the vehicle passes the detector.
     
     Args:
@@ -661,42 +562,6 @@ def _run_simulation_steps_v2(row: dict, detector: str, path: str, postfix: str, 
     return None
 
 
-def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str) -> Optional[Tuple[float, float]]:
-    """Run simulation steps until the vehicle passes the detector.
-    
-    Args:
-        row: Vehicle data row
-        detector: Detector ID
-        path: Output path
-        postfix: Postfix for filenames
-        
-    Returns:
-        Tuple of (time, speed) or None if vehicle didn't pass detector
-    """
-    time = None
-    speed = None
-    
-    while traci.simulation.getMinExpectedNumber() > 0:
-        if traci.simulation.getTime() == int(row["depart"]) + 1:
-            #traci.vehicle.setSpeed(row["id"], row["departSpeed"])
-            #traci.vehicle.setLaneChangeMode(row["id"], 0)
-            traci.simulation.saveState(f"{path}simulation_{postfix}_next.sumo.state")
-        
-        traci.simulationStep()
-        
-        #for veh_id in traci.simulation.getDepartedIDList():
-        #    traci.vehicle.setLaneChangeMode(veh_id, 0)
-        
-        vehicles = traci.inductionloop.getLastStepVehicleIDs(detector)
-        
-        if vehicles and vehicles[0] == row["id"]:
-            veh_id, veh_length, entry_time, exit_time, vType = traci.inductionloop.getVehicleData(detector)[0]
-            speed = traci.inductionloop.getLastStepMeanSpeed(detector)
-            time = round(entry_time - 1, 2)
-            return time, speed
-    
-    return None
-
 def calibrated_data(
     trips: pd.DataFrame, 
     sumo_config: str, 
@@ -707,6 +572,9 @@ def calibrated_data(
     postfix: str, 
     pathout: str,
     iteration: int,
+    base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
+    acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
+    n_initial_points: int,
 ) -> pd.DataFrame:
     """Run the calibration process for all vehicles.
     
@@ -737,7 +605,8 @@ def calibrated_data(
     step = 0
     
     for index, row in trips.iterrows():
-        result = _calibrate_single_vehicle_v2(dict(row), detector, maxspeed, path, postfix, iteration, mylog)
+        result = _calibrate_single_vehicle(dict(row), detector, maxspeed, path, postfix, iteration, mylog,
+                                           base_estimator, acq_func, n_initial_points )
         mylog.append(result)
         step += 1
     
