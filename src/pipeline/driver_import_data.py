@@ -9,13 +9,6 @@ from src.pipeline import features_import_data
 from src.tools import mytools
 localconfig = mytools.read_local_config()
 
-"""tracker = adapters.HamiltonTracker(
-project_id= myconfig["project_id"],  # modify this as needed
-username="kaveh",
-dag_name="Import Data",
-tags={"environment": "DEV", "team": "MY_TEAM", "version": "X"},
-)
-"""
 
 def _base_config():
     return {
@@ -38,6 +31,13 @@ def main(tracker: bool = False):
             config = yaml.safe_load(f)
     else:
         config = _base_config()
+
+    postfix = "import_data"
+    mytools.setup_logging(postfix, log_level=log_level)
+    logger = logging.getLogger("import_data")
+    logger.info("-------------------------------------------------------")
+    logger.info(f"data file name: {config['dataFilename']} ")
+    logger.info("-------------------------------------------------------")
 
     postfix = config.get("dataFilename", "import_data")
     mytools.setup_logging(postfix, log_level=log_level)
