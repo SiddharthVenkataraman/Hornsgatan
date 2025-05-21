@@ -15,7 +15,6 @@ This project provides a modular, data-driven pipeline for simulating and calibra
 ```
 Hornsgatan/
 ├── config/         # YAML configuration files for pipelines
-│   ├── calib_discrete_example.yaml
 │   ├── calib_example.yaml
 │   ├── import_data_example.yaml
 │   └── sim_example.yaml
@@ -23,8 +22,11 @@ Hornsgatan/
 ├── diagram/        # Visual diagrams and plots
 ├── notebook/       # Jupyter notebooks for analysis
 ├── src/            # Source code (simulation, calibration, pipeline)
+├── logs/
 ├── requirements.txt
-└── README.md
+├── README.md
+└── main.py
+
 ```
 
 ## Getting Started
