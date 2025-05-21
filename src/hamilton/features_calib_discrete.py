@@ -462,7 +462,7 @@ def _calibrate_single_vehicle(
         speed_error = speed - row["speed_detector_real"]
 
 
-        y_next = (time_error)**2 + (speed_error)**2
+        y_next = (time_error)**2 + (speed_error)**2 + (1-row["speed_factor"])
         
 
         opt.tell(x_next, y_next)          # Give result to optimizer
