@@ -11,10 +11,6 @@ def run_import_data():
     from src.pipeline import driver_import_data
     driver_import_data.main()
 
-def run_calib_discrete():
-    from src.pipeline import driver_calib_discrete
-    driver_calib_discrete.main()
-
 def run_calib():
     from src.pipeline import driver_calib
     driver_calib.main()
@@ -30,10 +26,8 @@ def run_my_driver():
 
 PIPELINES = {
     "import_data": run_import_data,
-    "calib_discrete": run_calib_discrete,
     "calib": run_calib,
     "sim": run_sim,
-    "my_driver": run_my_driver,
 }
 
 def main():

@@ -18,11 +18,11 @@ def setup_logging(postfix, log_level="INFO", log_dir="logs"):
     )
 
 
-def create_local_config(filename = 'config.ini' ):
+def create_local_config(filename = 'config/config.ini', project_id = 1 ):
     config = configparser.ConfigParser()
 
     # Add sections and key-value pairs
-    config['Hamilton'] = {'project_id': 1}
+    config['Hamilton'] = {'project_id': project_id}
     config['Database'] = {'db_name': 'example_db',
                           'db_host': 'localhost', 'db_port': '5432'}
 
