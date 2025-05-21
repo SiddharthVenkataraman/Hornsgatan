@@ -17,12 +17,12 @@ def _base_config() -> Dict[str, str]:
         "path": "data/calibration_intermediate_data/",
         "pathout": "data/calibration_data/",
         "pathin": "data/daily_splitted_data/",
-        "iteration": 30,
+        "iteration":35,
         "init_number" : 20,
         "network_file": "data/map/Hornsgatan.net.xml",
-        "base_estimator": "ET",   #{"GP", "RF", "ET", "GBRT"}
-        "acq_func": "EI", #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
-        "n_initial_points": 10,
+        "base_estimator": "GP",   #{"GP", "RF", "ET", "GBRT"}
+        "acq_func": "gp_hedge", #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
+        "n_initial_points": 5,
     }
 config = _base_config()
 
