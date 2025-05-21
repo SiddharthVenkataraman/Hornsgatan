@@ -12,13 +12,13 @@ def setup_logging(postfix, log_level="INFO", log_dir="logs"):
         level=getattr(logging, log_level.upper(), logging.INFO),
         format=log_format,
         handlers=[
-            logging.FileHandler(log_file, mode='w'),
+            logging.FileHandler(log_file, mode='a'),  # use mode 'w' for overwritting
             logging.StreamHandler()
         ]
     )
 
 
-def create_config(filename = 'config.ini' ):
+def create_local_config(filename = 'config.ini' ):
     config = configparser.ConfigParser()
 
     # Add sections and key-value pairs
@@ -32,7 +32,7 @@ def create_config(filename = 'config.ini' ):
      
      
         
-def read_config(filename = 'config.ini'):
+def read_local_config(filename = 'config/config.ini'):
     # Create a ConfigParser object
     config = configparser.ConfigParser()
     # Read the configuration file

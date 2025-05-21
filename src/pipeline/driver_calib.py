@@ -4,30 +4,17 @@ from hamilton import driver, base
 import sys
 from hamilton_sdk import adapters
 import yaml
-import logging
 
 from src.pipeline import features_calib
 from src.tools import mytools
 import logging
-myconfig = mytools.read_config()
 
-def _base_config() -> Dict[str, str]:
-    """Return base configuration parameters for the simulation."""
-    return {
-        "date": "2020-01-01",
-        "detector": "e2w_out",
-        "path": "data/calibration_intermediate_data/",
-        "pathout": "data/calibration_data/",
-        "pathin": "data/daily_splitted_data/",
-        "iteration": 50,
-        "init_number" : 0,
-        "network_file": "data/map/Hornsgatan.net.xml",
-        "hornsgatan_home": "/home/kaveh/Hornsgatan/"
-    }
+localconfig = mytools.read_local_config()
+
 
 def main(tracker: bool = False):
     import argparse
-    parser = argparse.ArgumentParser(description="Calibration Pipeline")
+    parser = argparse.ArgumentParser(description="Calibration Discrete Pipeline")
     parser.add_argument('--tracker', action='store_true', help='Enable HamiltonTracker adapter')
     parser.add_argument('--config', type=str, help='Path to YAML config file')
     parser.add_argument('--log-level', type=str, default='INFO', help='Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
@@ -35,19 +22,21 @@ def main(tracker: bool = False):
     tracker = args.tracker
     log_level = args.log_level
 
-    if args.config:
-        with open(args.config, 'r') as f:
-            config = yaml.safe_load(f)
-    else:
-        config = _base_config()
+    #if args.config:
+    with open(args.config, 'r') as f:
+        config = yaml.safe_load(f)
+    #else:
+    #    config = _base_config()
 
-    if config["init_number"]<1:
-        postfix =  f"{config['detector']}_{config['date']}"
-    else:
-        postfix = f"{config['detector']}_{config['date']}_{config['init_number']}"
-
+   
+    postfix = f"calib_{config['detector']}"
     mytools.setup_logging(postfix, log_level=log_level)
     logger = logging.getLogger("calib")
+    logger.info("-------------------------------------------------------")
+    logger.info(f"date: {config['date']}, detector: {config['detector']}, iteration: {config['iteration']}, "+
+    f"init_number: {config['init_number']}, base_estimator: {config['base_estimator']}, "+
+    f"acq_func: {config['acq_func']}, n_initial_points: {config['n_initial_points']}, name: {config['name']}")
+    logger.info("-------------------------------------------------------")
 
     builder = (
         driver.Builder()
@@ -56,14 +45,16 @@ def main(tracker: bool = False):
         .with_adapters(base.DictResult)
         .with_adapters(base)
     )
+
     if tracker:
         tracker_adapter = adapters.HamiltonTracker(
-            project_id=myconfig.get("project_id", "default_project"),
+            project_id=localconfig.get("project_id", "default_project"),
             username="kaveh",
             dag_name=f"calibration_{config['date']}_{config['detector']}_{config['init_number']}",
             tags={"environment": "DEV", "team": "MY_TEAM", "version": "X"},
         )
         builder = builder.with_adapters(tracker_adapter)
+
     dr = builder.build()
     result = dr.execute(["calibrated_data"])
 

@@ -9,7 +9,8 @@ import logging
 
 from src.pipeline import features_sim
 from src.tools import mytools
-myconfig = mytools.read_config()
+
+localconfig = mytools.read_local_config()
 
 
 def main(tracker: bool = False):
@@ -36,9 +37,12 @@ def main(tracker: bool = False):
             "hornsgatan_home": "/home/kaveh/Hornsgatan/"
         }
 
-    postfix = config.get("detector", "sim")
+    postfix = f"sim_{config.get("detector")}"
     mytools.setup_logging(postfix, log_level=log_level)
     logger = logging.getLogger("sim")
+    logger.info("-------------------------------------------------------")
+    logger.info(f"date: {config["date"]}, detector: {config["detector"]}, init_number: {config["init_number"]}")
+    logger.info("-------------------------------------------------------")
 
     builder = (
         driver.Builder()
@@ -49,7 +53,7 @@ def main(tracker: bool = False):
     )
     if tracker:
         tracker_adapter = adapters.HamiltonTracker(
-            project_id=myconfig.get("project_id", "default_project"),
+            project_id=localconfig.get("project_id", "default_project"),
             username="kaveh",
             dag_name=f"simulation_{config['date']}_{config['detector']}"
                 if "date" in config and "detector" in config else "simulation",

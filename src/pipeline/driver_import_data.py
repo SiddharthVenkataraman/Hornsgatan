@@ -7,12 +7,8 @@ import logging
 
 from src.pipeline import features_import_data
 from src.tools import mytools
-myconfig = mytools.read_config()
-# Replace with your target path
-#os.chdir(".")
+localconfig = mytools.read_local_config()
 
-# Confirm the current directory
-#print("Current directory:", os.getcwd())
 """tracker = adapters.HamiltonTracker(
 project_id= myconfig["project_id"],  # modify this as needed
 username="kaveh",
@@ -61,7 +57,7 @@ def main(tracker: bool = False):
     )
     if tracker:
         tracker_adapter = adapters.HamiltonTracker(
-            project_id=myconfig.get("project_id", "default_project"),
+            project_id=localconfig.get("project_id", "default_project"),
             username="kaveh",
             dag_name="Import Data",
             tags={"environment": "DEV", "team": "MY_TEAM", "version": "X"},

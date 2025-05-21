@@ -3,6 +3,7 @@ import pandas as pd
 from typing import Dict, List, Optional, Tuple, Any, Union
 import logging
 import xml.etree.ElementTree as ET
+logger = logging.getLogger("sim")
 
 
 
@@ -266,7 +267,7 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
     sumo_binary = "sumo"  # Use "sumo-gui" if you want to visualize the simulation
     traci.start([sumo_binary, "-c", sumo_config])
     traci.route.add(f"{detector}_route", detector_mappings["detector2route"][detector].split())
-
+    logger.info("SUMO simulation is started.")
     for index, row in trips.iterrows():
             try:
                 traci.vehicle.addFull(
@@ -303,7 +304,7 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
                     
     # Close the simulation
     traci.close()
-    print("Simulation completed.")
+    logger.info("Simulation completed.")
     return  f"../../{pathout}instanceInductionLoop_{postfix}.xml"
 
 
