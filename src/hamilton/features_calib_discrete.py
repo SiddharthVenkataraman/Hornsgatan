@@ -6,6 +6,8 @@ transforming the original script into a modular pipeline with well-defined depen
 """
 
 import os
+import shutil
+
 from typing import Dict, List, Optional, Tuple, Any, Union
 import pandas as pd
 import xml.etree.ElementTree as ET
@@ -442,7 +444,8 @@ def _calibrate_single_vehicle(
     #bounds = [Integer(0, depart_max-depart_min), (speed_factor_min, speed_factor_max)]
 
     logger.info(row)
-    logger.info(f"bounds = {bounds}")
+    logger.info(f"bounds = {bounds}, depart_min = {depart_min} ")
+    
     # --- Initialize Bayesian Optimizer ---
     opt = Optimizer(dimensions=bounds, base_estimator=base_estimator, acq_func=acq_func, n_initial_points=n_initial_points)
     for i in range(iteration):
@@ -450,20 +453,22 @@ def _calibrate_single_vehicle(
         row['depart'] = x_next[0]+depart_min
         row["speed_factor"] = x_next[1]/20
         #row["speed_factor"] = x_next[1]
-
+ 
         time_speed = _run_simulation_steps(row, detector, path, postfix, i, maxspeed=maxspeed)
         if time_speed is not None:
             time, speed = time_speed
             time_list.append(time)
             speed_list.append(speed)
+            
         else:
             logger.info("errorrrrrrrrrrr in time-speeeeeeeed")
         time_error = time-row["time_detector_real"]
         speed_error = speed - row["speed_detector_real"]
 
 
-        y_next = (time_error)**2 + (speed_error)**2 + (1-row["speed_factor"])
-        
+        y_next = (time_error)**2 + (speed_error)**2
+        y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
+        y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
 
         opt.tell(x_next, y_next)          # Give result to optimizer
         #logger.info(f"Iter {i}: Input={x_next}, Error={y_next:.4f}, time_error={time_error},  speed_error={speed_error}")
@@ -473,9 +478,9 @@ def _calibrate_single_vehicle(
     best_x = opt.Xi[best_index]
     best_y = min(opt.yi)
     logging.info(f"Best estimate: index = {best_index}" )
-    logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {(best_x[1]/20):.2f} ")
+    logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {round(best_x[1]/20, 2)} ")
     logging.info(f"Minimum error: {best_y:.4f}")
-    logging.info(f"best_time_error={time_list[best_index]-row['time_detector_real']}, best_speed_error={speed_list[best_index]-row['speed_detector_real']} ")
+    logging.info(f"best_time_error={round(time_list[best_index]-row['time_detector_real'],3)}, best_speed_error={round(speed_list[best_index]-row['speed_detector_real'],3)} ")
     
     traci.simulation.loadState(f"{path}simulation_{postfix}_{best_index}.sumo.state")
     traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
@@ -591,12 +596,12 @@ def calibrated_data(
     """
     
     setup_traci_simulation(
-    sumo_config, 
-    trips, 
-    detector, 
-    detector_mappings, 
-    path, 
-    postfix) 
+                sumo_config, 
+                trips, 
+                detector, 
+                detector_mappings, 
+                path, 
+                postfix) 
     
     trips["departSpeed"] = maxspeed
     trips["speed_factor"] = 1

@@ -11,13 +11,14 @@ myconfig = mytools.read_config()
 
 # Confirm the current directory
 #print("Current directory:", os.getcwd())
-
-tracker = adapters.HamiltonTracker(
+"""tracker = adapters.HamiltonTracker(
 project_id= myconfig["project_id"],  # modify this as needed
 username="kaveh",
 dag_name="Import Data",
 tags={"environment": "DEV", "team": "MY_TEAM", "version": "X"},
 )
+"""
+
 #if __name__ == "__main__":
 config = {
     "dataFilename": "test_radar_data",  # or any other file name (without .csv)
@@ -35,7 +36,7 @@ dr = (
     .with_config(config)  # we don't have any configuration or invariant data for this example.
     .with_modules(features_import_data)  # we need to tell hamilton where to load function definitions from
     .with_adapters(base.DictResult)  # we want a pandas dataframe as output
-    .with_adapters(tracker)
+    .with_adapters(base)#tracker)
     .build()
 )
 results = dr.execute(outputs)

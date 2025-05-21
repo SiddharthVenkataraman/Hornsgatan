@@ -12,13 +12,13 @@ myconfig = mytools.read_config()
 def _base_config() -> Dict[str, str]:
     """Return base configuration parameters for the simulation."""
     return {
-        "date": "2020-01-01",
+        "date": "2020-01-02",
         "detector": "w2e_in",
         "path": "data/calibration_intermediate_data/",
         "pathout": "data/calibration_data/",
         "pathin": "data/daily_splitted_data/",
         "iteration":50,
-        "init_number" : 20,
+        "init_number" : 0,
         "network_file": "data/map/Hornsgatan.net.xml",
         "base_estimator": "GP",   #{"GP", "RF", "ET", "GBRT"}
         "acq_func": "LCB", #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
