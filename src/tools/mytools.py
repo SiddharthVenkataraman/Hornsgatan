@@ -4,27 +4,18 @@ import os
 
 
 # Logging setup
-def setup_logging(postfix: str) -> str:
-    """Set up logging for the simulation.
-    
-    Args:
-        postfix: Postfix for log filename
-        
-    Returns:
-        Path to log file
-    """
-    logfile_name = f"log/simulation_{postfix}.log"
-    logger = logging.getLogger("calib")
-
+def setup_logging(postfix, log_level="INFO", log_dir="logs"):
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = os.path.join(log_dir, f"pipeline_{postfix}.log")
+    log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     logging.basicConfig(
-        filename=logfile_name,
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        level=getattr(logging, log_level.upper(), logging.INFO),
+        format=log_format,
+        handlers=[
+            logging.FileHandler(log_file, mode='w'),
+            logging.StreamHandler()
+        ]
     )
-    logger.info("Simulation started.")
-    return logfile_name
-
 
 
 def create_config(filename = 'config.ini' ):
