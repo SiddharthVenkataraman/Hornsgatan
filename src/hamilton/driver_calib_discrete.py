@@ -13,7 +13,7 @@ def _base_config() -> Dict[str, str]:
     """Return base configuration parameters for the simulation."""
     return {
         "date": "2020-01-02",
-        "detector": "w2e_in",
+        "detector": "e2w_in",
         "path": "data/calibration_intermediate_data/",
         "pathout": "data/calibration_data/",
         "pathin": "data/daily_splitted_data/",
