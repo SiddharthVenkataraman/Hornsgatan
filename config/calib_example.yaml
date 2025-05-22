@@ -1,5 +1,5 @@
 date: "2020-01-02"
-detector: "e2w_in"
+detector: "e2w_out"
 path: "data/calibration_intermediate_data/"
 pathout: "data/calibration_data/"
 pathin: "data/daily_splitted_data/"

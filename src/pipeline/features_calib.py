@@ -388,7 +388,6 @@ def setup_traci_simulation(
     
     traci.start([sumo_binary, "-c", sumo_config, "--begin", str(trips["depart"][0]-100)])
     traci.route.add(f"{detector}_route",  detector_mappings["detector2route"][detector].split())
-    traci.simulation.saveState(f"{path}simulation_{postfix}_next.sumo.state")
     traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
     return sumo_binary
 

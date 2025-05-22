@@ -1,5 +1,5 @@
-date: "2020-01-01"
-detector: "w2e_out"
+date: "2020-01-02"
+detector: "e2w_in"
 path: "data/sim_intermediate_data/"
 pathout: "data/sim_data/"
 pathin: "data/calibration_data/"
