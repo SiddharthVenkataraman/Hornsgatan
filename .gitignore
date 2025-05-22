@@ -17,6 +17,7 @@ config.ini
 
 # Ignore all `.log` files
 *.log
+*.zip
 
 # Ignore everything in data folder except demand.csv
 data/calibration_data/*
