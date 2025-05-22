@@ -37,11 +37,11 @@ def main(tracker: bool = False):
             "hornsgatan_home": "/home/kaveh/Hornsgatan/"
         }
 
-    postfix = f"sim_{config.get("detector")}"
+    postfix = f"sim_{config['detector']}"
     mytools.setup_logging(postfix, log_level=log_level)
     logger = logging.getLogger("sim")
     logger.info("-------------------------------------------------------")
-    logger.info(f"date: {config["date"]}, detector: {config["detector"]}, init_number: {config["init_number"]}")
+    logger.info(f"date: {config['date']}, detector: {config['detector']}, init_number: {config['init_number']}")
     logger.info("-------------------------------------------------------")
 
     builder = (
