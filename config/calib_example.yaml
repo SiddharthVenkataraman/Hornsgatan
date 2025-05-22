@@ -4,7 +4,7 @@ path: "data/calibration_intermediate_data/"
 pathout: "data/calibration_data/"
 pathin: "data/daily_splitted_data/"
 iteration: 50
-init_number: 10
+init_number: 0
 network_file: "data/map/Hornsgatan.net.xml"
 base_estimator: "GP"
 acq_func: "LCB"

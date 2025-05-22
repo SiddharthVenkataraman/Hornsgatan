@@ -157,3 +157,7 @@ MIT License
 ---
 
 For more information on SUMO and traffic simulation, visit the [SUMO Documentation](https://sumo.dlr.de/docs/index.html).
+
+## Pipeline Documentation
+
+For details on the calibration pipeline, see the [pipeline/README.md](src/pipeline/README.md).
