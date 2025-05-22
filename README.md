@@ -83,29 +83,23 @@ export PYTHONPATH="$SUMO_HOME/tools:$PYTHONPATH"
 
 You can run any pipeline from the project root using the `main.py` dispatcher and the `--pipeline` argument. Available pipelines are:
 - `import_data`
-- `calib_discrete`
 - `calib`
 - `sim`
-- `my_driver` (demonstration pipeline)
 
 You can run the pipelines in two ways:
 
 **1. As a script:**
 ```bash
 python main.py --pipeline import_data
-python main.py --pipeline calib_discrete
 python main.py --pipeline calib
 python main.py --pipeline sim
-python main.py --pipeline my_driver
 ```
 
 **2. As a module:**
 ```bash
 python -m main --pipeline import_data
-python -m main --pipeline calib_discrete
 python -m main --pipeline calib
 python -m main --pipeline sim
-python -m main --pipeline my_driver
 ```
 
 Both approaches are supported and will work the same way.
@@ -115,7 +109,6 @@ Both approaches are supported and will work the same way.
 You can specify a YAML configuration file for any pipeline using the `--config` argument. Example:
 
 ```bash
-python main.py --pipeline calib_discrete --config config/calib_discrete_example.yaml
 python main.py --pipeline sim --config config/sim_example.yaml
 python main.py --pipeline import_data --config config/import_data_example.yaml
 python main.py --pipeline calib --config config/calib_example.yaml
@@ -128,7 +121,6 @@ If you omit `--config`, the pipeline will use its default configuration.
 You can enable Hamilton experiment tracking for any pipeline by adding the `--tracker` flag:
 
 ```bash
-python main.py --pipeline calib_discrete --tracker
 python main.py --pipeline import_data --tracker
 python main.py --pipeline sim --tracker
 python main.py --pipeline calib --tracker
@@ -141,7 +133,7 @@ This approach allows you to flexibly select and run any pipeline from a single e
 **Logging**
 
 - All pipeline runs generate logs in the `logs/` directory (created automatically).
-- Log files are named according to the pipeline and configuration (e.g., `pipeline_calib_discrete_2020-01-02.log`).
+- Log files are named according to the pipeline and sensor name (e.g., `pipeline_calib_w2e_out.log`).
 - Logs include timestamps, log levels, and messages from both the console and file.
 - You can control the verbosity with the `--log-level` argument:
   - `DEBUG`, `INFO`, `WARNING`, `ERROR`, or `CRITICAL`
