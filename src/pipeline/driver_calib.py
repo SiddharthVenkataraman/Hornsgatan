@@ -12,10 +12,12 @@ import logging
 localconfig = mytools.read_local_config()
 
 
-def main(tracker: bool = False):
+def main(tracker: bool = False, fcd: bool = False):
     import argparse
     parser = argparse.ArgumentParser(description="Calibration Discrete Pipeline")
     parser.add_argument('--tracker', action='store_true', help='Enable HamiltonTracker adapter')
+    parser.add_argument('--fcd', action='store_true', help='Enable Calculate FCD')
+
     parser.add_argument('--config', type=str, help='Path to YAML config file')
     parser.add_argument('--log-level', type=str, default='INFO', help='Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
     args, _ = parser.parse_known_args()
@@ -56,7 +58,11 @@ def main(tracker: bool = False):
         builder = builder.with_adapters(tracker_adapter)
 
     dr = builder.build()
-    result = dr.execute(["calibrated_data"])
+    if fcd:
+        result = dr.execute(["calibrated_data_FCD"])
+
+    else:
+        result = dr.execute(["calibrated_data"])
 
 if __name__ == "__main__":
     main()

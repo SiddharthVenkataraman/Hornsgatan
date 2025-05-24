@@ -1,4 +1,6 @@
+#import libsumo as traci
 import traci
+
 import pandas as pd
 from typing import Dict, List, Optional, Tuple, Any, Union
 import logging
@@ -264,6 +266,8 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
              maxspeed: float, trips: pd.DataFrame, pathout:str,postfix: str) -> str:
 
     # Start the SUMO simulation
+    path = "data/sim_intermediate_data/"
+
     sumo_binary = "sumo"  # Use "sumo-gui" if you want to visualize the simulation
     traci.start([sumo_binary, "-c", sumo_config])
     traci.route.add(f"{detector}_route", detector_mappings["detector2route"][detector].split())
@@ -287,22 +291,42 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
                 print(f"Error adding vehicle {row['id']}:", e)
                 traci.close()
                 raise
-            
             traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
             traci.vehicle.setSpeed(row['id'], row["speed_factor"]*maxspeed)
+            #traci.vehicle.setMaxSpeed(row["id"], row["speed_factor"] * maxspeed)
 
-    path = "data/sim_intermediate_data/"
-    traci.simulation.saveState(f"{path}simulation_{postfix}_test.sumo.state")
+    #traci.simulation.saveState(f"{path}simulation_{postfix}_test.sumo.state")
 
     # Run the simulation step by step
+    simulation_log = []
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
-        #for veh_id in traci.simulation.getDepartedIDList():
-        #    traci.vehicle.setLaneChangeMode(veh_id, 0)
-        #    traci.vehicle.setSpeedFactor(veh_id, veh2sf[veh_id])
+        simtime = traci.simulation.getTime()-1
+        for veh in traci.vehicle.getIDList():
+                x, y = traci.vehicle.getPosition(veh)
+                lon, lat = traci.simulation.convertGeo(x, y)
+                #lon, lat = self.net.convertXY2LonLat(x, y)
+                simulation_log.append({"time": simtime,
+                                       "id":veh,
+                                       "speedfactor": traci.vehicle.getSpeedFactor(veh),
+                                       "x":round(lon,6),
+                                       "y":round(lat,6),
+                                       "angle":traci.vehicle.getAngle(veh),
+                                       "speed":traci.vehicle.getSpeed(veh), 
+                                       "acceleration":traci.vehicle.getAcceleration(veh),
+                                       "pos":traci.vehicle.getLanePosition(veh),
+                                       "lane":traci.vehicle.getLaneID(veh),
+                                       "noise":traci.vehicle.getNoiseEmission(veh)})
+                logger.info(simulation_log[-1])
+                #traci.simulation.saveState(f"{path}simulation_{postfix}_test.sumo.state")
+                #traci.simulation.loadState(f"{path}simulation_{postfix}_test.sumo.state")
 
-                    
-    # Close the simulation
+                #for veh_id in traci.simulation.getDepartedIDList():
+                #    traci.vehicle.setLaneChangeMode(veh_id, 0)
+                #    traci.vehicle.setSpeedFactor(veh_id, veh2sf[veh_id])
+
+                            
+            # Close the simulation
     traci.close()
     logger.info("Simulation completed.")
     return  f"../../{pathout}instanceInductionLoop_{postfix}.xml"

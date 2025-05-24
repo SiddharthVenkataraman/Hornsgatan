@@ -19,10 +19,10 @@ def run_sim():
     from src.pipeline import driver_sim
     driver_sim.main()
 
-def run_my_driver():
+#def run_my_driver():
     # my_driver does not have a main(), so we run as script
-    import runpy
-    runpy.run_module('src.pipeline.my_driver', run_name='__main__')
+#    import runpy
+#    runpy.run_module('src.pipeline.my_driver', run_name='__main__')
 
 PIPELINES = {
     "import_data": run_import_data,
@@ -37,7 +37,7 @@ def main():
         type=str,
         required=True,
         choices=PIPELINES.keys(),
-        help="Which pipeline to run: import_data, calib_discrete, calib, sim, my_driver"
+        help="Which pipeline to run: import_data, calib, sim"
     )
     # Parse only known args so that --tracker and others are passed through
     args, unknown = parser.parse_known_args()

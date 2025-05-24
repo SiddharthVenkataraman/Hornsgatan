@@ -1,8 +1,8 @@
 date: "2020-01-02"
-detector: "w2e_out"
+detector: "e2w_out"
 path: "data/sim_intermediate_data/"
 pathout: "data/sim_data/"
 pathin: "data/calibration_data/"
 network_file: "data/map/Hornsgatan.net.xml"
 hornsgatan_home: "/home/kaveh/Hornsgatan/"
-init_number: 0
+init_number: 10

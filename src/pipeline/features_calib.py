@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Tuple, Any, Union
 import pandas as pd
 import xml.etree.ElementTree as ET
 #from ..tools import mytools
+#import libsumo as traci
 import traci
 from math import ceil
 from hamilton import driver
@@ -20,6 +21,7 @@ from skopt import Optimizer
 import numpy as np
 from skopt.space import Integer
 import logging
+import csv
 
 logger = logging.getLogger("calib")
 
@@ -309,7 +311,7 @@ def routes(trips: pd.DataFrame, routes_dict: Dict[str, str], path: str, postfix:
 
 
 # SUMO configuration file
-def sumo_config(network_file: str, induction_loop_add_file: str, trips: pd.DataFrame, path: str, postfix: str) -> str:
+def sumo_config(network_file: str, induction_loop_add_file: str,instant_induction_loop_add_file:str, trips: pd.DataFrame, path: str, postfix: str) -> str:
     """Create SUMO configuration file.
     
     Args:
@@ -333,7 +335,10 @@ def sumo_config(network_file: str, induction_loop_add_file: str, trips: pd.DataF
     </input>
     <processing>
         <default.speeddev value="0"/>
+        <emergency-insert value="true"/>
+        <random-depart-offset value="0"/>
     </processing>
+    
     <time>
         <begin value="{start_time}"/>
     </time>
@@ -392,7 +397,7 @@ def setup_traci_simulation(
     return sumo_binary
 
 
-def _calibrate_single_vehicle(
+def _calibrate_single_vehicle_FCD(
     row: dict, 
     detector: str, 
     maxspeed: float, 
@@ -403,7 +408,7 @@ def _calibrate_single_vehicle(
     base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
     acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
     n_initial_points: int,
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], list]:
     """Calibrate a single vehicle in the simulation.
     
     Args:
@@ -425,6 +430,453 @@ def _calibrate_single_vehicle(
     
     time = None
     speed = None
+    simlog = []
+    time_list = []
+    speed_list = []
+    simlog_list = []
+    
+    if len(mylog) > 0:
+        depart_min = mylog[-1]["depart"]+1
+    else:
+        depart_min = row["time_detector_real"] - 100
+        
+    depart_max = max(row["time_detector_real"] - 10, depart_min +2)
+    
+    
+    speed_factor_min = 0.6
+    speed_factor_max = 3.2
+    
+    bounds = [Integer(0, depart_max-depart_min), Integer(int(speed_factor_min*20), int(speed_factor_max*20))]
+    #bounds = [Integer(0, depart_max-depart_min), (speed_factor_min, speed_factor_max)]
+
+    logger.info(row)
+    logger.info(f"bounds = {bounds}, depart_min = {depart_min} ")
+    
+    # --- Initialize Bayesian Optimizer ---
+    opt = Optimizer(dimensions=bounds, base_estimator=base_estimator, acq_func=acq_func, n_initial_points=n_initial_points)
+    for i in range(iteration):
+        x_next = opt.ask()                 # Propose next point
+        row['depart'] = x_next[0]+depart_min
+        row["speed_factor"] = x_next[1]/20
+        #row["speed_factor"] = x_next[1]
+ 
+        time_speed_simlog = _run_simulation_steps_FCD(row, detector, path, postfix, i, maxspeed=maxspeed)
+        if time_speed_simlog is not None:
+            time, speed,simlog = time_speed_simlog
+            time_list.append(time)
+            speed_list.append(speed)
+            simlog_list.append(simlog)
+            
+        else:
+            logger.info("errorrrrrrrrrrr in time-speeeeeeeed")
+        time_error = time-row["time_detector_real"]
+        speed_error = speed - row["speed_detector_real"]
+
+
+        y_next = (time_error)**2 + (speed_error)**2
+        y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
+        y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
+
+        opt.tell(x_next, y_next)          # Give result to optimizer
+        #logger.info(f"Iter {i}: Input={x_next}, Error={y_next:.4f}, time_error={time_error},  speed_error={speed_error}")
+        
+    # --- Best result ---
+    best_index = np.argmin(opt.yi)
+    best_x = opt.Xi[best_index]
+    best_y = min(opt.yi)
+    logging.info(f"Best estimate: index = {best_index}" )
+    logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {round(best_x[1]/20, 2)} ")
+    logging.info(f"Minimum error: {best_y:.4f}")
+    logging.info(f"best_time_error={round(time_list[best_index]-row['time_detector_real'],3)}, best_speed_error={round(speed_list[best_index]-row['speed_detector_real'],3)} ")
+    #for item in simlog_list[best_index]:
+    #    logging.info(f"simlog = {item} ")
+
+    traci.simulation.loadState(f"{path}simulation_{postfix}_{best_index}.sumo.state")
+    traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
+    
+    return {
+        "veh_id": row["id"],
+        "time_detector_sim": time_list[best_index],
+        "speed_detector_sim": speed_list[best_index],
+        "speed_factor": round((best_x[1]/20),2),
+        #"speed_factor": round(best_x[1],2),
+
+        "time_detector_real": row["time_detector_real"],
+        "depart": best_x[0]+depart_min,
+        "departSpeed": maxspeed * round((best_x[1]/20),2) ,
+        "speed_detector_real": row["speed_detector_real"]
+    }, simlog_list[best_index]
+
+
+
+def _run_simulation_steps_FCD(row: dict, detector: str, path: str, postfix: str, iteration_number:int, maxspeed: float) -> Optional[Tuple[float, float]]:
+    """Run simulation steps until the vehicle passes the detector.
+    
+    Args:
+        row: Vehicle data row
+        detector: Detector ID
+        path: Output path
+        postfix: Postfix for filenames
+        
+    Returns:
+        Tuple of (time, speed) or None if vehicle didn't pass detector
+    """
+    time = None
+    speed = None
+    simulation_log =[]
+    
+    try:
+        traci.simulation.loadState(f"{path}simulation_{postfix}.sumo.state")
+    except traci.FatalTraCIError as e:
+        logger.error(f"Error loading simulation state: {e}")
+        traci.close()
+        raise
+
+    # Remove the vehicle if it exists
+    if row['id'] in traci.vehicle.getIDList():
+        traci.vehicle.remove(row['id'])
+    
+    try:
+        traci.vehicle.addFull(
+            vehID=row['id'],
+            routeID=f"{row['detector_id']}_route",
+            depart=row["depart"],
+            departPos="0",
+            departSpeed="max",
+            departLane=row["departLane"],
+        )
+        #traci.vehicle.setSpeedMode(row['id'], 95)
+        row["departSpeed"] = row["speed_factor"] * maxspeed
+        traci.vehicle.setLaneChangeMode(row['id'], 0)
+    except traci.TraCIException as e:
+        logger.error(f"Error adding vehicle {row['id']}: {e}")
+        traci.close()
+        raise
+    
+    traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
+    traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
+    
+    #traci.vehicle.setMaxSpeed(row["id"], row["speed_factor"] * maxspeed)
+
+
+
+    
+    while traci.simulation.getMinExpectedNumber() > 0:
+        #print(f"step  = {traci.simulation.getTime()}  , depart  = {row["depart"]}")
+            
+        traci.simulationStep()
+                    
+        simtime = traci.simulation.getTime()
+        if simtime == int(row["depart"])+1:
+            traci.simulation.saveState(f"{path}simulation_{postfix}_{iteration_number}.sumo.state")
+            #print (f"depart = {row["depart"]}, step = {traci.simulation.getMinExpectedNumber()}, ite = {iteration_number}" )
+        
+        #if simtime == int(row["depart"]):
+            #traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
+            #traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
+
+        #    logger.info(f"iteration = {iteration_number}, speedfactor = {traci.vehicle.getSpeedFactor(row['id'])}, speed ={traci.vehicle.getSpeed(row['id'])}")
+
+        
+        if simtime <= int(row["depart"])+1:
+            for veh in traci.vehicle.getIDList():
+                x, y = traci.vehicle.getPosition(veh)
+                lon, lat = traci.simulation.convertGeo(x, y)
+                #lon, lat = self.net.convertXY2LonLat(x, y)
+                simulation_log.append({"time": int(simtime)-1,
+                                       "id":veh,
+                                       "speedfactor": traci.vehicle.getSpeedFactor(veh),
+                                       "x":round(lon,6),
+                                       "y":round(lat,6),
+                                       "angle":round(traci.vehicle.getAngle(veh),2),
+                                       "speed":round(traci.vehicle.getSpeed(veh),2), 
+                                       "acceleration":round(traci.vehicle.getAcceleration(veh),2),
+                                       "pos":round(traci.vehicle.getLanePosition(veh),2),
+                                       "lane":traci.vehicle.getLaneID(veh),
+                                       "noise":round(traci.vehicle.getNoiseEmission(veh),2)})
+            #if not (traci.vehicle.getIDList()):
+            #    simulation_log.append({"time": int(simtime)-1})
+          
+        
+        
+        
+        vehicles = traci.inductionloop.getLastStepVehicleIDs(detector)
+        
+        if vehicles and vehicles[0] == row["id"]:
+            veh_id, veh_length, entry_time, exit_time, vType = traci.inductionloop.getVehicleData(detector)[0]
+            speed = traci.inductionloop.getLastStepMeanSpeed(detector)
+            time = round(entry_time - 1, 2)
+            #time = round(entry_time, 2)
+
+            return time, speed, simulation_log
+    
+    return None
+
+
+def calibrated_data_FCD(
+    trips: pd.DataFrame,
+    sumo_config: str,
+    detector_mappings: Dict,
+    detector: str,
+    maxspeed: float,
+    path: str,
+    postfix: str,
+    pathout: str,
+    iteration: int,
+    base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
+    acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
+    n_initial_points: int,
+) -> str:
+    """Run the calibration process for all vehicles.
+
+    Args:
+        trips: Trips DataFrame
+        detector: Detector ID
+        maxspeed: Maximum speed value
+        path: Output path
+        postfix: Postfix for filenames
+        iteration: Maximum number of iterations
+
+    Returns:
+        DataFrame with calibration results
+    """
+
+    setup_traci_simulation(
+                sumo_config,
+                trips,
+                detector,
+                detector_mappings,
+                path,
+                postfix)
+
+    trips["departSpeed"] = maxspeed
+    trips["speed_factor"] = 1
+    mylog = []
+    # Determine the output file path
+    output_csv_path = f"{pathout}calibrated_data_{postfix}.csv"
+    logsim_csv_path = f"{pathout}fcd_data_{postfix}.csv"
+
+    # Define the CSV column headers based on the result dictionary keys and the calculated deltas
+    csv_headers = [
+        "veh_id",
+        "time_detector_sim",
+        "speed_detector_sim",
+        "speed_factor",
+        "time_detector_real",
+        "depart",
+        "departSpeed",
+        "speed_detector_real",
+        "delta_time",
+        "delta_speed"
+    ]
+    
+    fcd_header = [
+        "time",
+        "id",
+        "speedfactor",
+        "x",
+        "y",
+        "angle",
+        "speed", 
+        "acceleration",
+        "pos",
+        "lane",
+        "noise",   
+    ]
+
+    # Open the CSV file in write mode to create a new file and write the header
+    # Use newline='' to prevent extra blank rows.
+    logsim_list = []
+    
+    with open(output_csv_path, 'w', newline='') as result_csv,  \
+         open(logsim_csv_path, 'w', newline='') as fcd_csv:
+
+        result_writer = csv.writer(result_csv)
+        fcd_writer = csv.writer(fcd_csv)
+
+        result_writer.writerow(csv_headers)
+        fcd_writer.writerow(fcd_header)  # Assuming each dict in logsim_list has these keys
+
+
+        #mylog = [] # Keep mylog for existing logic if needed later in the function
+        step = 0
+
+        for index, row in trips.iterrows():
+            result, logsim_list = _calibrate_single_vehicle_FCD(dict(row), detector, maxspeed, path, postfix, iteration, mylog,
+                                               base_estimator, acq_func, n_initial_points )
+
+            # Calculate the delta values for the current vehicle
+            result["delta_time"] = result["time_detector_sim"] - result["time_detector_real"]
+            result["delta_speed"] = result["speed_detector_sim"] - result["speed_detector_real"]
+            mylog.append(result)
+            # Write the current vehicle's result as a row to the CSV
+            row_data = [result.get(header, "") for header in csv_headers] # Use .get to handle missing keys gracefully
+            result_writer.writerow(row_data)
+
+            # FCD ---------
+            
+            for log_row in logsim_list:
+                fcd_writer.writerow([log_row.get(h, "") for h in fcd_header])
+            #mylog.append(result) # Keep appending to mylog if needed for other logic
+            step += 1
+
+    # The file is automatically closed when exiting the 'with' block.
+    # The original code then converts mylog to a DataFrame and saves again.
+    # If you only want to save once per vehicle in the loop, you can remove the DataFrame conversion and final save outside the loop.
+    # Let's keep the final save to maintain the original function's output structure,
+    # although the file has already been written row by row.
+    # Note: This will overwrite the file just created in the loop, but ensures consistency
+    # if other parts of the pipeline expect the DataFrame return value or the final file format.
+
+    if traci.isLoaded():
+        traci.close()
+    #out_df = pd.DataFrame(mylog)
+    #out_df["delta_time"] = out_df["time_detector_sim"] - out_df["time_detector_real"] # Recalculate deltas for the DataFrame
+    #out_df["delta_speed"] = out_df["speed_detector_sim"] - out_df["speed_detector_real"] # Recalculate deltas for the DataFrame
+    #out_df.to_csv(f"{pathout}calibrated_data_{postfix}.csv", index=False)
+    return output_csv_path
+
+
+##########   NO  FCD  Version  ####################
+
+def calibrated_data(
+    trips: pd.DataFrame,
+    sumo_config: str,
+    detector_mappings: Dict,
+    detector: str,
+    maxspeed: float,
+    path: str,
+    postfix: str,
+    pathout: str,
+    iteration: int,
+    base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
+    acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
+    n_initial_points: int,
+) -> str:
+    """Run the calibration process for all vehicles.
+
+    Args:
+        trips: Trips DataFrame
+        detector: Detector ID
+        maxspeed: Maximum speed value
+        path: Output path
+        postfix: Postfix for filenames
+        iteration: Maximum number of iterations
+
+    Returns:
+        DataFrame with calibration results
+    """
+
+    setup_traci_simulation(
+                sumo_config,
+                trips,
+                detector,
+                detector_mappings,
+                path,
+                postfix)
+
+    trips["departSpeed"] = maxspeed
+    trips["speed_factor"] = 1
+    mylog = []
+    # Determine the output file path
+    output_csv_path = f"{pathout}calibrated_data_{postfix}.csv"
+
+    # Define the CSV column headers based on the result dictionary keys and the calculated deltas
+    csv_headers = [
+        "veh_id",
+        "time_detector_sim",
+        "speed_detector_sim",
+        "speed_factor",
+        "time_detector_real",
+        "depart",
+        "departSpeed",
+        "speed_detector_real",
+        "delta_time",
+        "delta_speed"
+    ]
+
+    # Open the CSV file in write mode to create a new file and write the header
+    # Use newline='' to prevent extra blank rows.
+    logsim_list = []
+    
+    with open(output_csv_path, 'w', newline='') as result_csv:
+
+        result_writer = csv.writer(result_csv)
+
+        result_writer.writerow(csv_headers)
+
+
+        #mylog = [] # Keep mylog for existing logic if needed later in the function
+        step = 0
+
+        for index, row in trips.iterrows():
+            result = _calibrate_single_vehicle(dict(row), detector, maxspeed, path, postfix, iteration, mylog,
+                                               base_estimator, acq_func, n_initial_points )
+
+            # Calculate the delta values for the current vehicle
+            result["delta_time"] = result["time_detector_sim"] - result["time_detector_real"]
+            result["delta_speed"] = result["speed_detector_sim"] - result["speed_detector_real"]
+            mylog.append(result)
+            # Write the current vehicle's result as a row to the CSV
+            row_data = [result.get(header, "") for header in csv_headers] # Use .get to handle missing keys gracefully
+            result_writer.writerow(row_data)
+
+         
+            #mylog.append(result) # Keep appending to mylog if needed for other logic
+            step += 1
+
+    # The file is automatically closed when exiting the 'with' block.
+    # The original code then converts mylog to a DataFrame and saves again.
+    # If you only want to save once per vehicle in the loop, you can remove the DataFrame conversion and final save outside the loop.
+    # Let's keep the final save to maintain the original function's output structure,
+    # although the file has already been written row by row.
+    # Note: This will overwrite the file just created in the loop, but ensures consistency
+    # if other parts of the pipeline expect the DataFrame return value or the final file format.
+
+    if traci.isLoaded():
+        traci.close()
+    #out_df = pd.DataFrame(mylog)
+    #out_df["delta_time"] = out_df["time_detector_sim"] - out_df["time_detector_real"] # Recalculate deltas for the DataFrame
+    #out_df["delta_speed"] = out_df["speed_detector_sim"] - out_df["speed_detector_real"] # Recalculate deltas for the DataFrame
+    #out_df.to_csv(f"{pathout}calibrated_data_{postfix}.csv", index=False)
+    return output_csv_path
+
+
+
+def _calibrate_single_vehicle(
+    row: dict, 
+    detector: str, 
+    maxspeed: float, 
+    path: str, 
+    postfix: str, 
+    iteration: int, 
+    mylog: List,
+    base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
+    acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
+    n_initial_points: int,
+) -> Tuple[Dict[str, Any], list]:
+    """Calibrate a single vehicle in the simulation.
+    
+    Args:
+        row: Vehicle data row
+        detector: Detector ID
+        maxspeed: Maximum speed value
+        path: Output path
+        postfix: Postfix for filenames
+        iteration: Maximum number of iterations
+        mylog: List of calibration results
+        
+    Returns:
+        Dictionary with calibration result for this vehicle
+    """
+    #traci.simulation.loadState(f"{path}simulation_{postfix}_next.sumo.state")
+    #traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
+    
+    logger.info(f"Processing vehicle ID: {row['id']}")
+    
+    time = None
+    speed = None
+    simlog = []
     time_list = []
     speed_list = []
     
@@ -480,7 +932,9 @@ def _calibrate_single_vehicle(
     logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {round(best_x[1]/20, 2)} ")
     logging.info(f"Minimum error: {best_y:.4f}")
     logging.info(f"best_time_error={round(time_list[best_index]-row['time_detector_real'],3)}, best_speed_error={round(speed_list[best_index]-row['speed_detector_real'],3)} ")
-    
+    #for item in simlog_list[best_index]:
+    #    logging.info(f"simlog = {item} ")
+
     traci.simulation.loadState(f"{path}simulation_{postfix}_{best_index}.sumo.state")
     traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
     
@@ -493,7 +947,7 @@ def _calibrate_single_vehicle(
 
         "time_detector_real": row["time_detector_real"],
         "depart": best_x[0]+depart_min,
-        "departSpeed": "max",
+        "departSpeed": maxspeed * round((best_x[1]/20),2) ,
         "speed_detector_real": row["speed_detector_real"]
     }
 
@@ -513,6 +967,7 @@ def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str, ite
     """
     time = None
     speed = None
+    simulation_log =[]
     
     try:
         traci.simulation.loadState(f"{path}simulation_{postfix}.sumo.state")
@@ -544,16 +999,20 @@ def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str, ite
     
     traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
     traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
+    
+    #traci.vehicle.setMaxSpeed(row["id"], row["speed_factor"] * maxspeed)
 
     
     while traci.simulation.getMinExpectedNumber() > 0:
         #print(f"step  = {traci.simulation.getTime()}  , depart  = {row["depart"]}")
-        if traci.simulation.getTime() == int(row["depart"]):
+            
+        traci.simulationStep()
+                    
+        simtime = traci.simulation.getTime()
+        if simtime == int(row["depart"])+1:
             traci.simulation.saveState(f"{path}simulation_{postfix}_{iteration_number}.sumo.state")
             #print (f"depart = {row["depart"]}, step = {traci.simulation.getMinExpectedNumber()}, ite = {iteration_number}" )
-        
-        traci.simulationStep()
-        
+      
         
         vehicles = traci.inductionloop.getLastStepVehicleIDs(detector)
         
@@ -561,66 +1020,9 @@ def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str, ite
             veh_id, veh_length, entry_time, exit_time, vType = traci.inductionloop.getVehicleData(detector)[0]
             speed = traci.inductionloop.getLastStepMeanSpeed(detector)
             time = round(entry_time - 1, 2)
+            #time = round(entry_time, 2)
+
             return time, speed
     
     return None
-
-
-def calibrated_data(
-    trips: pd.DataFrame, 
-    sumo_config: str, 
-    detector_mappings: Dict, 
-    detector: str, 
-    maxspeed: float, 
-    path: str, 
-    postfix: str, 
-    pathout: str,
-    iteration: int,
-    base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
-    acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
-    n_initial_points: int,
-) -> pd.DataFrame:
-    """Run the calibration process for all vehicles.
-    
-    Args:
-        trips: Trips DataFrame
-        detector: Detector ID
-        maxspeed: Maximum speed value
-        path: Output path
-        postfix: Postfix for filenames
-        iteration: Maximum number of iterations
-        
-    Returns:
-        DataFrame with calibration results
-    """
-    
-    setup_traci_simulation(
-                sumo_config, 
-                trips, 
-                detector, 
-                detector_mappings, 
-                path, 
-                postfix) 
-    
-    trips["departSpeed"] = maxspeed
-    trips["speed_factor"] = 1
-    
-    mylog = []
-    step = 0
-    
-    for index, row in trips.iterrows():
-        result = _calibrate_single_vehicle(dict(row), detector, maxspeed, path, postfix, iteration, mylog,
-                                           base_estimator, acq_func, n_initial_points )
-        mylog.append(result)
-        step += 1
-    
-    if traci.isLoaded():
-        traci.close()
-    out_df = pd.DataFrame(mylog)
-    out_df["delta_time"] = out_df["time_detector_sim"] - out_df["time_detector_real"]
-    out_df["delta_speed"] = out_df["speed_detector_sim"] - out_df["speed_detector_real"]
-    out_df.to_csv(f"{pathout}calibrated_data_{postfix}.csv", index=False)
-    return out_df
-
-
 
