@@ -714,9 +714,9 @@ def calibrated_data_FCD(
             result_writer.writerow(row_data)
 
             # FCD ---------
-            
             for log_row in logsim_list:
                 fcd_writer.writerow([log_row.get(h, "") for h in fcd_header])
+                logger.info(log_row)
             #mylog.append(result) # Keep appending to mylog if needed for other logic
             step += 1
 

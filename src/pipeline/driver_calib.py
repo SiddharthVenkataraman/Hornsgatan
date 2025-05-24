@@ -22,6 +22,7 @@ def main(tracker: bool = False, fcd: bool = False):
     parser.add_argument('--log-level', type=str, default='INFO', help='Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
     args, _ = parser.parse_known_args()
     tracker = args.tracker
+    fcd = args.fcd
     log_level = args.log_level
 
     #if args.config:
