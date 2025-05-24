@@ -111,7 +111,7 @@ for _ in range(num_vehicles):
 # Convert the list of rows into a pandas DataFrame
 synthetic_df = pd.DataFrame(rows)
 # Save the synthetic data to a CSV file
-synthetic_df.to_csv('data/synthetic/synthetic_data_{detector}.csv', index=False)
+synthetic_df.to_csv(f'data/synthetic/synthetic_data_{detector}.csv', index=False)
 
 # Visual comparison
 # Extract real data for plotting

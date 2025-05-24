@@ -469,7 +469,7 @@ def _calibrate_single_vehicle_FCD(
             simlog_list.append(simlog)
             
         else:
-            logger.info("errorrrrrrrrrrr in time-speeeeeeeed")
+            logger.error("errorrrrrrrrrrr in time-speeeeeeeed")
         time_error = time-row["time_detector_real"]
         speed_error = speed - row["speed_detector_real"]
 
@@ -717,7 +717,7 @@ def calibrated_data_FCD(
             # FCD ---------
             for log_row in logsim_list:
                 fcd_writer.writerow([log_row.get(h, "") for h in fcd_header])
-                logger.info(log_row)
+                #logger.info(log_row)
             #mylog.append(result) # Keep appending to mylog if needed for other logic
             step += 1
 

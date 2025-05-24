@@ -301,6 +301,7 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
     simulation_log = []
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
+        """
         simtime = traci.simulation.getTime()-1
         for veh in traci.vehicle.getIDList():
                 x, y = traci.vehicle.getPosition(veh)
@@ -320,7 +321,7 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
                 logger.info(simulation_log[-1])
                 #traci.simulation.saveState(f"{path}simulation_{postfix}_test.sumo.state")
                 #traci.simulation.loadState(f"{path}simulation_{postfix}_test.sumo.state")
-
+        """
                 #for veh_id in traci.simulation.getDepartedIDList():
                 #    traci.vehicle.setLaneChangeMode(veh_id, 0)
                 #    traci.vehicle.setSpeedFactor(veh_id, veh2sf[veh_id])
