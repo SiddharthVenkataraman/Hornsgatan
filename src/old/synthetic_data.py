@@ -92,7 +92,7 @@ for _ in range(num_vehicles):
     # Create a DataFrame for prediction with the correct feature names
     prediction_input = pd.DataFrame([[last_speed, last_time]], columns=['speed_prev', 'time_prev'])
     
-    next_speed = model_speed.predict(prediction_input)[0] + np.random.normal(0, speed_resid_std)
+    next_speed = model_speed.predict(prediction_input)[0] + np.random.normal(0, speed_resid_std*1.5)
     next_time = model_time.predict(prediction_input)[0] + np.random.normal(0, time_resid_std) # Use time_resid_std
     # Ensure speed and time are non-negative
     next_speed = max(0, next_speed)
