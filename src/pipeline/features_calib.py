@@ -445,8 +445,9 @@ def _calibrate_single_vehicle_FCD(
     
     speed_factor_min = 0.6
     speed_factor_max = 3.2
+    speed_factor_resolution = 20
     
-    bounds = [Integer(0, depart_max-depart_min), Integer(int(speed_factor_min*20), int(speed_factor_max*20))]
+    bounds = [Integer(0, depart_max-depart_min), Integer(int(speed_factor_min*speed_factor_resolution), int(speed_factor_max*speed_factor_resolution))]
     #bounds = [Integer(0, depart_max-depart_min), (speed_factor_min, speed_factor_max)]
 
     logger.info(row)
@@ -457,7 +458,7 @@ def _calibrate_single_vehicle_FCD(
     for i in range(iteration):
         x_next = opt.ask()                 # Propose next point
         row['depart'] = x_next[0]+depart_min
-        row["speed_factor"] = x_next[1]/20
+        row["speed_factor"] = x_next[1]/speed_factor_resolution
         #row["speed_factor"] = x_next[1]
  
         time_speed_simlog = _run_simulation_steps_FCD(row, detector, path, postfix, i, maxspeed=maxspeed)
@@ -485,7 +486,7 @@ def _calibrate_single_vehicle_FCD(
     best_x = opt.Xi[best_index]
     best_y = min(opt.yi)
     logging.info(f"Best estimate: index = {best_index}" )
-    logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {round(best_x[1]/20, 2)} ")
+    logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {round(best_x[1]/speed_factor_resolution, 2)} ")
     logging.info(f"Minimum error: {best_y:.4f}")
     logging.info(f"best_time_error={round(time_list[best_index]-row['time_detector_real'],3)}, best_speed_error={round(speed_list[best_index]-row['speed_detector_real'],3)} ")
     #for item in simlog_list[best_index]:
@@ -498,12 +499,12 @@ def _calibrate_single_vehicle_FCD(
         "veh_id": row["id"],
         "time_detector_sim": time_list[best_index],
         "speed_detector_sim": speed_list[best_index],
-        "speed_factor": round((best_x[1]/20),2),
+        "speed_factor": round((best_x[1]/speed_factor_resolution),2),
         #"speed_factor": round(best_x[1],2),
 
         "time_detector_real": row["time_detector_real"],
         "depart": best_x[0]+depart_min,
-        "departSpeed": maxspeed * round((best_x[1]/20),2) ,
+        "departSpeed": maxspeed * round((best_x[1]/speed_factor_resolution),2) ,
         "speed_detector_real": row["speed_detector_real"]
     }, simlog_list[best_index]
 
@@ -890,8 +891,10 @@ def _calibrate_single_vehicle(
     
     speed_factor_min = 0.6
     speed_factor_max = 3.2
+    speed_factor_resolution = 20
+
     
-    bounds = [Integer(0, depart_max-depart_min), Integer(int(speed_factor_min*20), int(speed_factor_max*20))]
+    bounds = [Integer(0, depart_max-depart_min), Integer(int(speed_factor_min*speed_factor_resolution), int(speed_factor_max*speed_factor_resolution))]
     #bounds = [Integer(0, depart_max-depart_min), (speed_factor_min, speed_factor_max)]
 
     logger.info(row)
@@ -902,7 +905,7 @@ def _calibrate_single_vehicle(
     for i in range(iteration):
         x_next = opt.ask()                 # Propose next point
         row['depart'] = x_next[0]+depart_min
-        row["speed_factor"] = x_next[1]/20
+        row["speed_factor"] = x_next[1]/speed_factor_resolution
         #row["speed_factor"] = x_next[1]
  
         time_speed = _run_simulation_steps(row, detector, path, postfix, i, maxspeed=maxspeed)
@@ -929,7 +932,7 @@ def _calibrate_single_vehicle(
     best_x = opt.Xi[best_index]
     best_y = min(opt.yi)
     logging.info(f"Best estimate: index = {best_index}" )
-    logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {round(best_x[1]/20, 2)} ")
+    logging.info(f"Depart time: {depart_min+ best_x[0]} s, factor speed: {round(best_x[1]/speed_factor_resolution, 2)} ")
     logging.info(f"Minimum error: {best_y:.4f}")
     logging.info(f"best_time_error={round(time_list[best_index]-row['time_detector_real'],3)}, best_speed_error={round(speed_list[best_index]-row['speed_detector_real'],3)} ")
     #for item in simlog_list[best_index]:
@@ -942,12 +945,12 @@ def _calibrate_single_vehicle(
         "veh_id": row["id"],
         "time_detector_sim": time_list[best_index],
         "speed_detector_sim": speed_list[best_index],
-        "speed_factor": round((best_x[1]/20),2),
+        "speed_factor": round((best_x[1]/speed_factor_resolution),2),
         #"speed_factor": round(best_x[1],2),
 
         "time_detector_real": row["time_detector_real"],
         "depart": best_x[0]+depart_min,
-        "departSpeed": maxspeed * round((best_x[1]/20),2) ,
+        "departSpeed": maxspeed * round((best_x[1]/speed_factor_resolution),2) ,
         "speed_detector_real": row["speed_detector_real"]
     }
 
