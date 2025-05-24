@@ -445,7 +445,7 @@ def _calibrate_single_vehicle_FCD(
     
     speed_factor_min = 0.6
     speed_factor_max = 3.2
-    speed_factor_resolution = 20
+    speed_factor_resolution = 30
     
     bounds = [Integer(0, depart_max-depart_min), Integer(int(speed_factor_min*speed_factor_resolution), int(speed_factor_max*speed_factor_resolution))]
     #bounds = [Integer(0, depart_max-depart_min), (speed_factor_min, speed_factor_max)]
@@ -469,14 +469,14 @@ def _calibrate_single_vehicle_FCD(
             simlog_list.append(simlog)
             
         else:
-            logger.info("errorrrrrrrrrrr in time-speeeeeeeed")
+            logger.error("errorrrrrrrrrrr in time-speeeeeeeed")
         time_error = time-row["time_detector_real"]
         speed_error = speed - row["speed_detector_real"]
 
 
         y_next = (time_error)**2 + (speed_error)**2
-        y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
-        y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
+       # y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
+       # y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
 
         opt.tell(x_next, y_next)          # Give result to optimizer
         #logger.info(f"Iter {i}: Input={x_next}, Error={y_next:.4f}, time_error={time_error},  speed_error={speed_error}")
@@ -717,7 +717,7 @@ def calibrated_data_FCD(
             # FCD ---------
             for log_row in logsim_list:
                 fcd_writer.writerow([log_row.get(h, "") for h in fcd_header])
-                logger.info(log_row)
+                #logger.info(log_row)
             #mylog.append(result) # Keep appending to mylog if needed for other logic
             step += 1
 
