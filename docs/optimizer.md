@@ -4,7 +4,7 @@ This document explains how Bayesian Optimization is used to calibrate vehicle pa
 
 ---
 
-## 📌 What is Bayesian Optimization?
+## What is Bayesian Optimization?
 
 Bayesian Optimization is a global optimization method designed for expensive-to-evaluate functions. It works by:
 
@@ -13,7 +13,7 @@ Bayesian Optimization is a global optimization method designed for expensive-to-
 
 ---
 
-## 🎯 Why Use It in Our Project?
+## Why Use It in Our Project?
 
 - Running a SUMO + TraCI simulation is **computationally expensive**.
 - We want to optimize **departure time** and **speed factor** for each vehicle.
@@ -21,7 +21,7 @@ Bayesian Optimization is a global optimization method designed for expensive-to-
 
 ---
 
-## 📚 Bayesian Inference Recap
+## Bayesian Inference Recap
 
 - **θ**: Parameters (e.g., depart time, speed factor)
 - **D**: Observed data (detector times/speeds)
@@ -32,7 +32,7 @@ Bayesian Optimization is a global optimization method designed for expensive-to-
 
 ---
 
-## 📐 Gaussian Process (GP)
+## Gaussian Process (GP)
 
 GP models the unknown function with:
 
@@ -48,7 +48,7 @@ Where $\ell$ is the length scale controlling smoothness.
 
 ---
 
-## 🔢 Posterior Prediction in GP
+## Posterior Prediction in GP
 
 Given data $X = [x_1, ..., x_n]$, targets $y$, and new point $x^*$:
 
@@ -67,7 +67,7 @@ $$
 
 ---
 
-## 🎯 Acquisition Functions
+## Acquisition Functions
 
 Acquisition functions guide where to sample next.
 
@@ -88,7 +88,7 @@ $$
 
 ---
 
-## 🚗 Application to Traffic Simulation
+## Application to Traffic Simulation
 
 In our pipeline:
 
@@ -101,7 +101,7 @@ In our pipeline:
 
 ---
 
-## ✅ Summary
+## Summary
 
 - **Bayesian Optimization** is sample-efficient.
 - It uses **GPs** to model the objective and guide the search.
@@ -109,7 +109,7 @@ In our pipeline:
 
 ---
 
-## 📖 References
+## References
 
 - Rasmussen & Williams, *Gaussian Processes for Machine Learning*, MIT Press (2006)
 - Brochu et al., *A Tutorial on Bayesian Optimization of Expensive Cost Functions, with Application to Active User Modeling and Hierarchical Reinforcement Learning*, arXiv:1012.2599 (2010)

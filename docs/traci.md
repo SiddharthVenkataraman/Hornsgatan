@@ -56,7 +56,7 @@
 
 ## What You Can Do with TraCI
 
-### 🚗 Vehicle Control
+### Vehicle Control
 
 ```python
 traci.vehicle.getSpeed(vehID)                  # Get current speed
@@ -81,7 +81,7 @@ traci.vehicle.addFull(vehID, routeID,          #Add a vehicle with detailed para
 ```
 
 
-### 📟 Detector Data
+### Detector Data
 
 ```python
 traci.inductionloop.getLastStepVehicleNumber(detectorID)   # Vehicle count
@@ -90,7 +90,7 @@ traci.inductionloop.getLastStepVehicleIDs(detectorID)      # Vehicle IDs
 traci.inductionloop.getLastStepOccupancy(detectorID)       # Occupancy
 ```
 
-### 🕹️ Simulation Control
+### Simulation Control
 
 ```python
 traci.simulationStep()                              # Advance simulation step  
@@ -102,7 +102,7 @@ traci.simulation.loadState("state.xml")             # Load saved state
 
 ```
 
-### 🚦 Traffic Light Control
+### Traffic Light Control
 
 ```python
 traci.trafficlight.getRedYellowGreenState(tlsID)        # Get light state
