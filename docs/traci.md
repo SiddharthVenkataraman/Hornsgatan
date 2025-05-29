@@ -59,25 +59,21 @@
 ### Vehicle Control
 
 ```python
-traci.vehicle.getSpeed(vehID)                  # Get current speed
-traci.vehicle.getPosition(vehID)               # Get location (x, y)
-traci.vehicle.getSpeedFactor(vehID)            # Get speed factor
-traci.vehicle.setSpeed(vehID, speed)           # Set specific speed
-traci.vehicle.setSpeedFactor(vehID, factor)    # Set speed factor
-traci.vehicle.changeLane(vehID,                # Change lane
-                         laneIndex,
-                         duration)             
-traci.vehicle.getLaneID(vehID)                 # Get current lane
-traci.vehicle.getRoadID(vehID)                 # Get current road
-traci.vehicle.setRoute(vehID, edgeList)        # Set a custom route
-traci.vehicle.remove(vehID)                    # Remove vehicle
-traci.vehicle.setColor(vehID, (r, g, b, a))    # Set vehicle color
-traci.vehicle.add(vehID, routeID)              # Add a vehicle to the simulation
-
-traci.vehicle.addFull(vehID, routeID,          #Add a vehicle with detailed parameters
-                      typeID, depart,
-                      departLane, departPos,
-                      departSpeed)              
+traci.vehicle.getSpeed(vehID)                              # Get current speed
+traci.vehicle.getPosition(vehID)                           # Get location (x, y)
+traci.vehicle.getSpeedFactor(vehID)                        # Get speed factor
+traci.vehicle.setSpeed(vehID, speed)                       # Set specific speed
+traci.vehicle.setSpeedFactor(vehID, factor)                # Set speed factor
+traci.vehicle.changeLane(vehID, laneIndex, duration)       # Change lane     
+traci.vehicle.getLaneID(vehID)                             # Get current lane
+traci.vehicle.getRoadID(vehID)                             # Get current road
+traci.vehicle.setRoute(vehID, edgeList)                    # Set a custom route
+traci.vehicle.remove(vehID)                                # Remove vehicle
+traci.vehicle.setColor(vehID, (r, g, b, a))                # Set vehicle color
+traci.vehicle.add(vehID, routeID)                          # Add a vehicle to the simulation
+traci.vehicle.addFull(vehID, routeID, typeID, depart,      # Add a vehicle with detailed parameters
+                      typeID, depart, departLane,
+                      departPos, departSpeed)              
 ```
 
 
@@ -93,22 +89,22 @@ traci.inductionloop.getLastStepOccupancy(detectorID)       # Occupancy
 ### Simulation Control
 
 ```python
-traci.simulationStep()                              # Advance simulation step  
-traci.simulation.getTime()                          # Current simulation time  
-traci.simulation.getMinExpectedNumber()             # Remaining vehicles  
-traci.load(["-c", "config.sumocfg"])                # Load new simulation  
-traci.simulation.saveState("state.xml")             # Save current state  
-traci.simulation.loadState("state.xml")             # Load saved state  
+traci.simulationStep()                                    # Advance simulation step  
+traci.simulation.getTime()                                # Current simulation time  
+traci.simulation.getMinExpectedNumber()                   # Remaining vehicles  
+traci.load(["-c", "config.sumocfg"])                      # Load new simulation  
+traci.simulation.saveState("state.xml")                   # Save current state  
+traci.simulation.loadState("state.xml")                   # Load saved state  
 
 ```
 
 ### Traffic Light Control
 
 ```python
-traci.trafficlight.getRedYellowGreenState(tlsID)        # Get light state
-traci.trafficlight.setRedYellowGreenState(tlsID, state) # Set light state
-traci.trafficlight.getPhase(tlsID)                      # Get phase index
-traci.trafficlight.setPhase(tlsID, phaseIndex)          # Set specific phase
+traci.trafficlight.getRedYellowGreenState(tlsID)         # Get light state
+traci.trafficlight.setRedYellowGreenState(tlsID, state)  # Set light state
+traci.trafficlight.getPhase(tlsID)                       # Get phase index
+traci.trafficlight.setPhase(tlsID, phaseIndex)           # Set specific phase
 ```
 
 ---
