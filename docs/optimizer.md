@@ -53,14 +53,16 @@ Where $\ell$ is the length scale controlling smoothness.
 Given data $X = [x_1, ..., x_n]$, targets $y$, and new point $x^*$:
 
 - $K$: Covariance matrix of training points
-- $k_*$: Covariance vector between $x^*$ and training data
+- $k_{*}$: Covariance vector between $x^{*}$ and training data
 
 ### Mean:
-$$\mu(x^*) = k_*^T K^{-1} y$$
+$$
+\mu(x^{*}) = k_{*}^T K^{-1} y
+$$
 
 ### Variance:
 $$
-\sigma^2(x^*) = k(x^*, x^*) - k_*^T K^{-1} k_*
+\sigma^2(x^{*}) = k(x^{*}, x^{*}) - k_{*}^T K^{-1} k_{*}
 $$
 
 ---
