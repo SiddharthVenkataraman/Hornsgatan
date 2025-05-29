@@ -44,13 +44,13 @@ $$
 k(x, x') = \exp\left(-\frac{\|x - x'\|^2}{2\ell^2}\right)
 $$
 
-Where $' \ell '$ is the length scale controlling smoothness.
+Where $\ell$ is the length scale controlling smoothness.
 
 ---
 
 ## 🔢 Posterior Prediction in GP
 
-Given data $' X = [x_1, ..., x_n] '$, targets $' y '$, and new point $' x^* '$:
+Given data $ X = [x_1, ..., x_n] $, targets $' y '$, and new point $' x^* '$:
 
 - $' K '$: Covariance matrix of training points
 - $' k_* '$: Covariance vector between $' x^* '$ and training data
