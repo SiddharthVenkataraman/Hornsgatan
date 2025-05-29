@@ -4,9 +4,10 @@ path: "data/calibration_intermediate_data/"
 pathout: "data/calibration_data/"
 pathin: "data/daily_splitted_data/"
 iteration: 50
-init_number: 0
+init_number: 5
 network_file: "data/map/Hornsgatan.net.xml"
 base_estimator: "GP"
 acq_func: "LCB"
 n_initial_points: 5
+no_speed: true
 name: "GP_LCB_50_5"

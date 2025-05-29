@@ -408,6 +408,7 @@ def _calibrate_single_vehicle_FCD(
     base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
     acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
     n_initial_points: int,
+    no_speed: bool,
 ) -> Tuple[Dict[str, Any], list]:
     """Calibrate a single vehicle in the simulation.
     
@@ -473,10 +474,12 @@ def _calibrate_single_vehicle_FCD(
         time_error = time-row["time_detector_real"]
         speed_error = speed - row["speed_detector_real"]
 
-
-        y_next = (time_error)**2 + (speed_error)**2
-        y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
-        y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
+        if no_speed:
+            y_next = (time_error)**2 + 0.1*(1-row["speed_factor"])**2
+        else:
+            y_next = (time_error)**2 + (speed_error)**2
+        #y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
+        #y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
 
         opt.tell(x_next, y_next)          # Give result to optimizer
         #logger.info(f"Iter {i}: Input={x_next}, Error={y_next:.4f}, time_error={time_error},  speed_error={speed_error}")
@@ -627,6 +630,7 @@ def calibrated_data_FCD(
     base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
     acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
     n_initial_points: int,
+    no_speed: bool,
 ) -> str:
     """Run the calibration process for all vehicles.
 
@@ -704,7 +708,7 @@ def calibrated_data_FCD(
 
         for index, row in trips.iterrows():
             result, logsim_list = _calibrate_single_vehicle_FCD(dict(row), detector, maxspeed, path, postfix, iteration, mylog,
-                                               base_estimator, acq_func, n_initial_points )
+                                               base_estimator, acq_func, n_initial_points, no_speed)
 
             # Calculate the delta values for the current vehicle
             result["delta_time"] = result["time_detector_sim"] - result["time_detector_real"]
@@ -753,6 +757,7 @@ def calibrated_data(
     base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
     acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
     n_initial_points: int,
+    no_speed:bool,
 ) -> str:
     """Run the calibration process for all vehicles.
 
@@ -812,7 +817,7 @@ def calibrated_data(
 
         for index, row in trips.iterrows():
             result = _calibrate_single_vehicle(dict(row), detector, maxspeed, path, postfix, iteration, mylog,
-                                               base_estimator, acq_func, n_initial_points )
+                                               base_estimator, acq_func, n_initial_points, no_speed )
 
             # Calculate the delta values for the current vehicle
             result["delta_time"] = result["time_detector_sim"] - result["time_detector_real"]
@@ -855,6 +860,7 @@ def _calibrate_single_vehicle(
     base_estimator: str,   #{"GP", "RF", "ET", "GBRT"}
     acq_func: str, #{"LCB", "EI", "PI", "MES", "PVRS", "gp_hedge", "EIps", "PIps"}
     n_initial_points: int,
+    no_speed: bool
 ) -> Tuple[Dict[str, Any], list]:
     """Calibrate a single vehicle in the simulation.
     
@@ -920,7 +926,10 @@ def _calibrate_single_vehicle(
         speed_error = speed - row["speed_detector_real"]
 
 
-        y_next = (time_error)**2 + (speed_error)**2
+        if no_speed:
+            y_next = (time_error)**2 + 0.1*(1-row["speed_factor"])**2
+        else:
+            y_next = (time_error)**2 + (speed_error)**2
         #y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
         #y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
 
