@@ -71,14 +71,14 @@ $$
 
 Acquisition functions guide where to sample next.
 
-### 1. **Expected Improvement (EI)**:
+### 1. **Maximum Expected Improvement (EI)**:
 $$
 EI(x) = \mathbb{E}[\max(0, f_{best} - f(x))]
 $$
 
-### 2. **Probability of Improvement (PI)**:
+### 2. **Maximum Probability of Improvement (PI)**:
 $$
-PI(x) = \Phi\left(\frac{f_{best} - \mu(x)}{\sigma(x)}\right)
+PI(x) = \mathbb{P}[\max(0, f_{best} - f(x))]
 $$
 
 ### 3. **Upper Confidence Bound (UCB)**:

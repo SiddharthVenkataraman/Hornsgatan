@@ -1,6 +1,10 @@
-# High-Level Project Workflow
+# Hornsgatan Traffic Simulation and Calibration Project Workflows
 
-This document provides a high-level overview of the data processing and simulation workflow within the Hornsgatan traffic simulation and calibration project.
+This document outlines the key data processing and simulation workflows within the Hornsgatan project, presented at both a high level and a detailed low level for the calibration process.
+
+## High-Level Project Workflow Overview
+
+This section provides a high-level overview of the main stages of the Hornsgatan traffic simulation and calibration project's data processing and simulation workflow.
 
 The project is designed as a modular pipeline, orchestrated by the Hamilton library, to perform the following main steps:
 
@@ -44,9 +48,9 @@ graph TD
     class E param
 ``` 
 
-## Low-Level Calibration Workflow
+## Low-Level Calibration Workflow Details
 
-This section details the steps involved in the calibration process, which aims to find optimal vehicle parameters (depart time and speed factor) using real detector data, SUMO via TraCI, and an optimizer.
+This section provides a detailed look at the steps involved in the calibration process. This workflow aims to find optimal vehicle parameters (depart time and speed factor) by iteratively using real detector data, the SUMO simulator via TraCI, and a Bayesian optimizer (skopt).
 
 ```mermaid
 graph TD
@@ -79,7 +83,7 @@ graph TD
 
 *   **Simulation Cost/Error:** This metric quantifies how well the SUMO simulation output, using a given set of vehicle parameters, matches the real-world detector data for a specific vehicle or data entry. It is calculated as a numerical value that the optimizer attempts to minimize. A lower value indicates a closer match between the simulated and real observations. Based on the `features_calib.py` implementation, the formula for the cost function is:
     $$(t_{sim} - t_{real})^2 + (v_{sim} - v_{real})^2$$
-*   **Calibration Iterations and Best Parameters:** In this project's calibration process, the Bayesian optimizer (skopt) runs for a fixed number of iterations (`iteration` parameter) for each data entry. During these iterations, the optimizer proposes different sets of vehicle parameters (depart time and speed factor) to minimize the simulation cost/error. After completing all iterations, the set of parameters that yielded the lowest cost/error encountered throughout the iterations is selected as the 'calibrated' or **Best Found Parameters for Entry**.
+*   **Calibration Iterations and Best Parameters:** In this project's calibration process, the Bayesian optimizer (skopt) runs for a fixed number of iterations (`iteration` parameter) for each data entry. During these iterations, the optimizer proposes different sets of vehicle parameters (depart time and speed factor) to minimize the simulation cost/error. After completing all iterations, the set of parameters that resulted in the lowest simulation cost/error encountered throughout the iterations is selected as the 'calibrated' or **Best Found Parameters for Entry**.
     Where:
     *   $ t_{sim} $ and $ v_{sim} $ are the simulated vehicle detection time and speed.
     *   $ t_{real} $ and $ v_{real} $ are the real observed detector time and speed.
