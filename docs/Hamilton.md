@@ -2,6 +2,8 @@
 
 This document explains how the [Hamilton](https://github.com/dagworks-inc/hamilton) library is used to structure and run the dataflows within the Hornsgatan traffic simulation and calibration project.
 
+---
+
 ## What is Hamilton and Why Use It?
 
 Hamilton is a micro-orchestration library for building dataflows.
@@ -18,6 +20,8 @@ Hamilton promotes building data pipelines using modular, testable Python functio
 
 Hamilton helps move away from imperative scripting towards a more declarative, functional style for data processing.
 
+---
+
 ## General Hamilton Implementation Concepts
 
 Implementing Hamilton typically involves:
@@ -29,11 +33,15 @@ Implementing Hamilton typically involves:
 
 Hamilton automatically determines the execution order based on the function dependencies.
 
+---
+
 ## Hamilton in this Project
 
 In the Hornsgatan project, Hamilton is used to define and manage the various data processing steps involved in importing data, running simulations, and performing calibration.
 
 The dataflow logic is primarily defined within the `src/` directory. Each function in a Hamilton module represents a step in the dataflow, and its inputs are determined by its function signature.
+
+---
 
 ## Running Hamilton Pipelines
 
@@ -49,6 +57,8 @@ The `--tracker` flag can be added to enable Hamilton experiment tracking.
 
 Configuration for the Hamilton drivers is managed through YAML files located in the `config/` directory.
 
+---
+
 ## Dataflow Structure
 
 The Hamilton dataflows are designed to be modular. Key aspects include:
@@ -60,11 +70,15 @@ The Hamilton dataflows are designed to be modular. Key aspects include:
 
 Refer to the code within the `src/` directory to see the specific Hamilton modules and functions that define the dataflows.
 
+---
+
 ## Further Information
 
 - For details on setting up the project and running the main entry point, see the main [README.md](../README.md).
 - For specific details on the calibration pipeline, see the [pipeline/README.md](../../src/pipeline/README.md). (Note: Adjust path if needed based on actual structure)
 - Visit the [Hamilton documentation](https://docs.dagworks.io/) for more general information on using Hamilton.
+
+---
 
 ### Official Hamilton Resources
 
