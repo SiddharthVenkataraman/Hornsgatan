@@ -81,9 +81,9 @@ $$
 PI(x) = \mathbb{P}[\max(0, f_{best} - f(x))]
 $$
 
-### 3. **Upper Confidence Bound (UCB)**:
+### 3. **Minimum Lower Confidence Bound (LCB)**:
 $$
-UCB(x) = \mu(x) - \kappa \cdot \sigma(x)
+LCB(x) = \mu(x) + \kappa \cdot \sigma(x)
 $$
 
 ---
