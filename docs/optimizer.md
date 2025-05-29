@@ -40,9 +40,9 @@ GP models the unknown function with:
 - A **kernel** (covariance function)
 
 ### Common Kernel (RBF):
-\[
+$$
 k(x, x') = \exp\left(-\frac{\|x - x'\|^2}{2\ell^2}\right)
-\]
+$$
 
 Where \( \ell \) is the length scale controlling smoothness.
 
@@ -50,20 +50,20 @@ Where \( \ell \) is the length scale controlling smoothness.
 
 ## 🔢 Posterior Prediction in GP
 
-Given data \( X = [x_1, ..., x_n] \), targets \( y \), and new point \( x^* \):
+Given data $ X = [x_1, ..., x_n] $, targets $ y $, and new point $ x^* $:
 
-- \( K \): Covariance matrix of training points
-- \( k_* \): Covariance vector between \( x^* \) and training data
+- $ K $: Covariance matrix of training points
+- $ k_* $: Covariance vector between $ x^* $ and training data
 
 ### Mean:
-\[
+$$
 \mu(x^*) = k_*^T K^{-1} y
-\]
+$$
 
 ### Variance:
-\[
+$$
 \sigma^2(x^*) = k(x^*, x^*) - k_*^T K^{-1} k_*
-\]
+$$
 
 ---
 
@@ -72,19 +72,19 @@ Given data \( X = [x_1, ..., x_n] \), targets \( y \), and new point \( x^* \):
 Acquisition functions guide where to sample next.
 
 ### 1. **Expected Improvement (EI)**:
-\[
+$$
 EI(x) = \mathbb{E}[\max(0, f_{best} - f(x))]
-\]
+$$
 
 ### 2. **Probability of Improvement (PI)**:
-\[
+$$
 PI(x) = \Phi\left(\frac{f_{best} - \mu(x)}{\sigma(x)}\right)
-\]
+$$
 
 ### 3. **Upper Confidence Bound (UCB)**:
-\[
+$$
 UCB(x) = \mu(x) - \kappa \cdot \sigma(x)
-\]
+$$
 
 ---
 
