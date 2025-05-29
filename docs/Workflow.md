@@ -93,6 +93,7 @@ graph TD
 *   **Simulation Cost/Error:**
 Metric quantifying how well simulation output (with suggested parameters) matches real data for an entry. A numerical value minimized by the optimizer. Lower = better match.
 Cost function formula:
+
 $$(t_{sim} - t_{real})^2 + (v_{sim} - v_{real})^2$$
 
 *   **Calibration Iterations & Best Parameters:**
