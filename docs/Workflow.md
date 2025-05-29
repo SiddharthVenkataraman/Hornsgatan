@@ -11,8 +11,8 @@ Overview of the main stages in the Hornsgatan traffic simulation and calibration
 The project uses a modular Hamilton pipeline with these main steps:
 
 1.  **Data Ingestion & Preprocessing:** Import and process real detector data for simulation and calibration.
-2.  **Traffic Simulation:** Run SUMO scenarios to produce traffic flow data.
-3.  **Calibration:** Calibrate vehicle parameters against real data using Bayesian optimization (scikit-optimize) to minimize simulation-to-real data difference.
+2.  **Calibration:** Calibrate vehicle parameters against real data using Bayesian optimization (scikit-optimize) to minimize simulation-to-real data difference.
+3.  **Traffic Simulation:** Run SUMO scenarios to produce traffic flow data.
 4.  **Analysis & Export:** Analyze and export simulation and calibration results.
 
 Each stage is a Hamilton dataflow, triggered via `main.py`.
@@ -20,8 +20,8 @@ Each stage is a Hamilton dataflow, triggered via `main.py`.
 Available pipelines:
 
 -   `import_data`: Data ingestion and preparation.
--   `sim`: Traffic simulation.
 -   `calib`: Calibration process.
+-   `sim`: Traffic simulation.
 
 Hamilton manages step dependencies for a clear and maintainable workflow. 
 
