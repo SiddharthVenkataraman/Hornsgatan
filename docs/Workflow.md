@@ -24,8 +24,8 @@ By using Hamilton, the dependencies between the steps within and across these st
 
 ```mermaid
 graph TD
-    A[Real Detector Data] --> B["Data Ingestion & Preprocessing"]
-    B --> C["Split Data for one Day & one Detector"]
+    A[Real Detector Data] --> B["Data Ingestion and Preprocessing"]
+    B --> C["Split Data for one Day and one Detector"]
     C --> E(Calibration vehicle depart time and speed by TracI and optimizer)
     C --> F[SUMO Traffic Simulator]
     E --> F
