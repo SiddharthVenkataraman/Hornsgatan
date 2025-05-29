@@ -1,5 +1,8 @@
 from hamilton.function_modifiers import extract_columns, schema
 import pandas as pd
+import logging
+
+logger = logging.getLogger("import_data")
 
 # --- 1. Read raw CSV file and extract key columns ---
 
@@ -21,7 +24,12 @@ def raw_data(dataFilename: str) -> pd.DataFrame:
         A DataFrame with columns: timestamp, avg_speed, node_id.
     """
     raw_data_path = f"data/raw_data/{dataFilename}.csv"
-    return pd.read_csv(raw_data_path)
+    data = pd.read_csv(raw_data_path)
+    if "avg_speed" not in data.columns:
+        data['avg_speed'] = 0
+        logger.warn("No avg_speed column in the raw data. It's set to zero.")
+
+    return data
 
 def timestamp(raw_data: pd.DataFrame) -> pd.Series:
     return raw_data["timestamp"]
