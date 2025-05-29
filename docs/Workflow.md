@@ -51,7 +51,7 @@ graph TD
     classDef param fill:#cc9,stroke:#333,stroke-width:2px;
     class E param
 ```
- 
+
 ---
 
 ## Low-Level Calibration Workflow
@@ -89,12 +89,20 @@ graph TD
 
 ### Explanations:
 
-*   **Simulation Cost/Error:** Metric quantifying how well simulation output (with suggested parameters) matches real data for an entry. A numerical value minimized by the optimizer. Lower = better match. Cost function formula: $$(t_{sim} - t_{real})^2 + (v_{sim} - v_{real})^2$$
-*   **Calibration Iterations & Best Parameters:** Skopt optimizer runs for fixed iterations (`iteration`) per entry. It proposes parameters to minimize cost. After iterations, the parameters with the lowest cost found are the **Best Found Parameters for Entry**.
+*   **Simulation Cost/Error:**
+Metric quantifying how well simulation output (with suggested parameters) matches real data for an entry. A numerical value minimized by the optimizer. Lower = better match.
+Cost function formula:
+$$(t_{sim} - t_{real})^2 + (v_{sim} - v_{real})^2$$
+
+*   **Calibration Iterations & Best Parameters:**
+Skopt optimizer runs for fixed iterations (`iteration`) per entry. It proposes parameters to minimize cost. After iterations, the parameters with the lowest cost found are the **Best Found Parameters for Entry**.
     Where:
-    *   $t_{sim}$, $v_{sim}$: simulated detection time/speed.
+    -    $t_{sim}$, $v_{sim}$: simulated detection time/speed.
     *   $t_{real}$, $v_{real}$: real observed time/speed.
     *   $f_{speed}$, $t_{depart}$: vehicle speed factor/depart time parameters calibrated.
     *   $f_{speed}^{min/max}$, $t_{depart}^{min/max}$: parameter bounds.
-*   **Suggested Parameters (Depart Time, Speed Factor):** Values proposed by the optimizer in an iteration, aiming for lower costs based on Bayesian optimization.
+
+*   **Suggested Parameters (Depart Time, Speed Factor):**
+Values proposed by the optimizer in an iteration, aiming for lower costs based on Bayesian optimization.
+
 *   **Optimizer Updates:** Suggested parameters and their cost are fed back to the optimizer. This update refines its model for better future suggestions.
