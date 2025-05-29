@@ -140,7 +140,7 @@ def save_transform_raw_data(transform_raw_data: pd.DataFrame, dataFilename: str)
 
 # --- 8. Split data by day and save to separate files ---
 
-def split_and_save_daily(transform_raw_data: pd.DataFrame) -> list:
+def split_and_save_daily(transform_raw_data: pd.DataFrame, minimumLenData:int) -> list:
     """
     Adds 'day' and 'date' columns, then splits the data by date, saving each to a separate file.
     Saves only if there are more than 10,000 rows for that date.
@@ -160,7 +160,7 @@ def split_and_save_daily(transform_raw_data: pd.DataFrame) -> list:
     saved_files = []
     for date, group in transform_raw_data.groupby('date'):
         file_name = f"data_{date}.csv"
-        if len(group) > 10000:
+        if len(group) > minimumLenData:
             group.to_csv(output_dir + file_name, index=False)
             saved_files.append(file_name)
     

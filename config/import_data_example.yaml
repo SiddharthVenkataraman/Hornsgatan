@@ -1,2 +1,3 @@
 dataFilename: "test_radar_data"
 sensorFilename: "sensor_info"
+minimumLenData: 10000
