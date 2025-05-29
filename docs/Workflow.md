@@ -42,13 +42,13 @@ graph TD
     H --> I[Results]
 
     %% Styling for clarity
-    classDef data fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef data fill:#4682B4,stroke:#333,stroke-width:2px;
     class A,G,I data
-    classDef process fill:#ccf,stroke:#333,stroke-width:2px;
+    classDef process fill:#2E8B57,stroke:#333,stroke-width:2px;
     class B,C,E,H process
-    classDef tool fill:#ff9,stroke:#333,stroke-width:2px;
+    classDef tool fill:#DAA520,stroke:#333,stroke-width:2px;
     class F tool
-    classDef param fill:#cc9,stroke:#333,stroke-width:2px;
+    classDef param fill:#8A2BE2,stroke:#333,stroke-width:2px;
     class E param
 ```
 
@@ -79,9 +79,9 @@ graph TD
     B -- All Entries Processed --> P["All Calibrated Data Output"]
 
     %% Styling
-    classDef data fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef data fill:#4682B4,stroke:#333,stroke-width:2px;
     class A,D,H,J,L,N,P data
-    classDef process fill:#ccf,stroke:#333,stroke-width:2px;
+    classDef process fill:#2E8B57,stroke:#333,stroke-width:2px;
     class B,C,E,F,G,I,K,M,O process
 ```
 
