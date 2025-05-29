@@ -57,7 +57,7 @@ Given data $X = [x_1, ..., x_n]$, targets $y$, and new point $x^*$:
 
 ### Mean:
 $$
-\mu(x^{*}) = k_{*}^T K^{-1} y
+\mu(x^*) = k_{\*}^T K^{-1} y
 $$
 
 ### Variance:
