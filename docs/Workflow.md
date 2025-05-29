@@ -85,9 +85,9 @@ graph TD
     $$(t_{sim} - t_{real})^2 + (v_{sim} - v_{real})^2$$
 *   **Calibration Iterations and Best Parameters:** In this project's calibration process, the Bayesian optimizer (skopt) runs for a fixed number of iterations (`iteration` parameter) for each data entry. During these iterations, the optimizer proposes different sets of vehicle parameters (depart time and speed factor) to minimize the simulation cost/error. After completing all iterations, the set of parameters that resulted in the lowest simulation cost/error encountered throughout the iterations is selected as the 'calibrated' or **Best Found Parameters for Entry**.
     Where:
-    *   $t_{sim}$ and $ v_{sim} $ are the simulated vehicle detection time and speed.
-    *   $ t_{real} $ and $ v_{real} $ are the real observed detector time and speed.
-    *   $ f_{speed} $ and $ t_{depart} $ are the vehicle speed factor and depart time parameters being calibrated.
-    *   $ f_{speed}^{min} $, $ f_{speed}^{max} $, $ t_{depart}^{min} $, and $ t_{depart}^{max} $ are the defined bounds for the respective parameters.
+    *   $t_{sim}$ and $v_{sim}$ are the simulated vehicle detection time and speed.
+    *   $t_{real}$ and $v_{real}$ are the real observed detector time and speed.
+    *   $f_{speed}$ and $t_{depart}$ are the vehicle speed factor and depart time parameters being calibrated.
+    *   $f_{speed}^{min}$, $f_{speed}^{max}$, $t_{depart}^{min}$, and $t_{depart}^{max}$ are the defined bounds for the respective parameters.
 *   **Suggested Parameters (Depart Time, Speed Factor):** These are the specific values for vehicle depart time and speed factor that the optimizer proposes for evaluation in a given iteration. The optimizer uses its internal strategy (Bayesian optimization in this case) to suggest parameters that it predicts will lead to a lower simulation cost/error based on the results of previous iterations.
 *   **Optimizer Updates with Result:** After a SUMO simulation is run with the **Suggested Parameters** and the **Simulation Cost/Error** is calculated, this result (the suggested parameters and their corresponding cost/error) is fed back to the optimizer. This update step allows the optimizer to learn from the evaluation and refine its model of the parameter space, enabling it to make better suggestions for parameters in subsequent iterations.
