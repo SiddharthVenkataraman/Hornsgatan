@@ -85,7 +85,7 @@ graph TD
     $$(t_{sim} - t_{real})^2 + (v_{sim} - v_{real})^2$$
 *   **Calibration Iterations and Best Parameters:** In this project's calibration process, the Bayesian optimizer (skopt) runs for a fixed number of iterations (`iteration` parameter) for each data entry. During these iterations, the optimizer proposes different sets of vehicle parameters (depart time and speed factor) to minimize the simulation cost/error. After completing all iterations, the set of parameters that resulted in the lowest simulation cost/error encountered throughout the iterations is selected as the 'calibrated' or **Best Found Parameters for Entry**.
     Where:
-    *   $ t_{sim} $ and $ v_{sim} $ are the simulated vehicle detection time and speed.
+    *   $t_{sim}$ and $ v_{sim} $ are the simulated vehicle detection time and speed.
     *   $ t_{real} $ and $ v_{real} $ are the real observed detector time and speed.
     *   $ f_{speed} $ and $ t_{depart} $ are the vehicle speed factor and depart time parameters being calibrated.
     *   $ f_{speed}^{min} $, $ f_{speed}^{max} $, $ t_{depart}^{min} $, and $ t_{depart}^{max} $ are the defined bounds for the respective parameters.
