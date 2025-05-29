@@ -83,7 +83,7 @@ $$
 
 ### 3. **Minimum Lower Confidence Bound (LCB)**:
 $$
-LCB(x) = \mu(x) + \kappa \cdot \sigma(x)
+LCB(x) = \mu(x) - \kappa \cdot \sigma(x)
 $$
 
 ---
