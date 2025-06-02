@@ -5,6 +5,8 @@ import pandas as pd
 from typing import Dict, List, Optional, Tuple, Any, Union
 import logging
 import xml.etree.ElementTree as ET
+from src.tools import mytools
+
 logger = logging.getLogger("sim")
 
 
@@ -330,6 +332,10 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
             # Close the simulation
     traci.close()
     logger.info("Simulation completed.")
+    logger.info("creating FCD csv file ...")
+    mytools.fcd_xml_to_csv(pathout, postfix)
+    logger.info("pipeline is finished .")
+
     return  f"../../{pathout}instanceInductionLoop_{postfix}.xml"
 
 
