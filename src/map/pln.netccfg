@@ -1,32 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Fri Mar 26 10:04:34 2021 by Eclipse SUMO netconvert Version 1.8.0
+<!-- generated on 2025-06-02 13:21:08 by Eclipse SUMO netconvert Version 1.23.1
 -->
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+<netconvertConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-       <!-- <type-files value="typemap/osmNetconvert.typ.xml,typemap/osmNetconvertUrbanDe.typ.xml"/> -->
-        <osm-files value="../../data/map/Hornsgatan_large.osm"/>
+        <node-files value="src/map/pln.nod.xml"/>
+        <edge-files value="src/map/pln.edg.xml"/>
+        <connection-files value="src/map/pln.con.xml"/>
+        <tllogic-files value="src/map/pln.tll.xml"/>
+        <type-files value="src/map/pln.typ.xml"/>
+        <osm-files value="src/map/../../data/map/Hornsgatan_large.osm"/>
     </input>
 
     <output>
         <output-prefix value="../../data/map/"/>
-        <output-file value="Hornsgatan_large.net.xml"/>
+        <output-file value="src/map/Hornsgatan_large.net.xml"/>
         <output.street-names value="true"/>
-        <plain-output-prefix value="pln"/>
         <output.original-names value="true"/>
-        <ptstop-output value="osm_stops.add.xml"/>
-        <ptline-output value="osm_ptlines.xml"/>
+        <ptstop-output value="src/map/osm_stops.add.xml"/>
+        <ptline-output value="src/map/osm_ptlines.xml"/>
         <ptline-clean-up value="true"/>
-
     </output>
+
     <projection>
+        <proj.utm value="true"/>
         <proj.plain-geo value="true"/>
     </projection>
+
     <processing>
-        <geometry.remove value="true"/>
         <plain.extend-edge-shape value="true"/>
+        <geometry.remove value="true"/>
         <roundabouts.guess value="true"/>
     </processing>
 
@@ -36,6 +41,7 @@
         <tls.guess-signals value="true"/>
         <tls.default-type value="actuated"/>
     </tls_building>
+
     <ramp_guessing>
         <ramps.guess value="true"/>
     </ramp_guessing>
@@ -46,15 +52,13 @@
     </edge_removal>
 
     <junctions>
-        <junctions.corner-detail value="5"/>
+        <no-internal-links value="False"/>
         <junctions.join value="False"/>
-        <no-turnarounds vaalue="False"/>
-        <no-internal-links value="False"/> 
-
+        <junctions.corner-detail value="5"/>
     </junctions>
 
     <report>
         <verbose value="true"/>
     </report>
 
-</configuration>
+</netconvertConfiguration>
