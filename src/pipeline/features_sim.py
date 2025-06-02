@@ -294,7 +294,7 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
                 traci.close()
                 raise
             traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
-            traci.vehicle.setSpeed(row['id'], row["speed_factor"]*maxspeed)
+            #traci.vehicle.setSpeed(row['id'], row["speed_factor"]*maxspeed)
             #traci.vehicle.setMaxSpeed(row["id"], row["speed_factor"] * maxspeed)
 
     #traci.simulation.saveState(f"{path}simulation_{postfix}_test.sumo.state")
