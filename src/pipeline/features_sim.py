@@ -333,7 +333,7 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
     traci.close()
     logger.info("Simulation completed.")
     logger.info("creating FCD csv file ...")
-    mytools.fcd_xml_to_csv(pathout, postfix)
+    mytools.fcd_xml_to_csv(path, postfix,pathout=pathout)
     logger.info("pipeline is finished .")
 
     return  f"../../{pathout}instanceInductionLoop_{postfix}.xml"

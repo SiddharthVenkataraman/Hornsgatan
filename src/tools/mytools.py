@@ -75,7 +75,9 @@ def delete_all_except_list(directory, keep_files):
                 print(f"Failed to delete {fpath}: {e}")
                 
         
-def fcd_xml_to_csv(path, postfix):
+def fcd_xml_to_csv(path, postfix, pathout=None):
+    if pathout==None:
+        pathout = path
     # Parse the FCD XML file
     fcd_xml_file = f"{path}fcd_output_{postfix}.xml"
     tree_fcd = ET.parse(fcd_xml_file)
@@ -102,7 +104,7 @@ def fcd_xml_to_csv(path, postfix):
     df_fcd = pd.DataFrame(fcd_data)
 
     # Save to CSV
-    fcd_csv_file = f"{path}fcd_output_{postfix}.csv"
+    fcd_csv_file = f"{pathout}fcd_output_{postfix}.csv"
     df_fcd.to_csv(fcd_csv_file, index=False)
     print(f"FCD data successfully converted to CSV and saved as '{fcd_csv_file}'.")
     return fcd_csv_file
