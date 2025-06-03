@@ -4,6 +4,8 @@ import os
 import xml.etree.ElementTree as ET
 import pandas as pd
 import zipfile
+import sumolib
+
 
 # Logging setup
 def setup_logging(postfix, log_level="INFO", log_dir="logs"):
@@ -118,3 +120,15 @@ def zip_files(file_paths, output_zip_path):
             arcname = os.path.basename(file_path)  # Store just the file name
             zipf.write(file_path, arcname)
     print(f"Created zip file: {output_zip_path}")
+
+def shortest_path(source_edge, destination_edge, netfile):
+    # Path to the SUMO network file
+    # Load the network
+    net = sumolib.net.readNet(netfile, withInternals=True)
+    shortest_path = net.getShortestPath(net.getEdge(source_edge), net.getEdge(destination_edge))
+    edges = list()
+    for edge in shortest_path[0]:
+        edges.append(edge.getID())
+    route = ' '.join(edges)
+    return route
+

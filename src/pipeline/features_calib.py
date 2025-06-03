@@ -398,7 +398,7 @@ def setup_traci_simulation(
   
 
     
-    traci.start([sumo_binary, "-c", sumo_config, "--begin", str(trips["depart"][0]-100)])
+    traci.start([sumo_binary, "-c", sumo_config,"--tls.all-off", "--begin", str(trips["depart"][0]-100)])
     traci.route.add(f"{detector}_route",  detector_mappings["detector2route"][detector].split())
     traci.simulation.saveState(f"{path}simulation_{postfix}.sumo.state")
     return sumo_binary
@@ -478,6 +478,8 @@ def _calibrate_single_vehicle_FCD(
             
         else:
             logger.error("errorrrrrrrrrrr in time-speeeeeeeed")
+            print("cccaaaalllliiiibbbraaaattiioonnnn  eeerrrrooooorrrrr")
+            exit(0)
         time_error = time-row["time_detector_real"]
         speed_error = speed - row["speed_detector_real"]
 
@@ -556,7 +558,7 @@ def _run_simulation_steps_FCD(row: dict, detector: str, path: str, postfix: str,
             departSpeed="max",
             departLane=row["departLane"],
         )
-        #traci.vehicle.setSpeedMode(row['id'], 95)
+        traci.vehicle.setSpeedMode(row['id'], 95)
         row["departSpeed"] = row["speed_factor"] * maxspeed
         traci.vehicle.setLaneChangeMode(row['id'], 0)
     except traci.TraCIException as e:
@@ -576,8 +578,8 @@ def _run_simulation_steps_FCD(row: dict, detector: str, path: str, postfix: str,
         #print(f"step  = {traci.simulation.getTime()}  , depart  = {row["depart"]}")
         
         traci.simulationStep()
-        for veh in traci.simulation.getDepartedIDList():
-            traci.vehicle.changeLane(veh,row["departLane"],100000) #time to stay in the lane
+        #for veh in traci.simulation.getDepartedIDList():
+        #    traci.vehicle.changeLane(veh,row["departLane"],100000) #time to stay in the lane
         #    traci.vehicle.setLaneChangeMode(veh, 0)
 
                     
@@ -613,8 +615,12 @@ def _run_simulation_steps_FCD(row: dict, detector: str, path: str, postfix: str,
             #    simulation_log.append({"time": int(simtime)-1})
           
         vehicles = traci.inductionloop.getLastStepVehicleIDs(detector)
+
+
         if vehicles and vehicles[0] == row["id"]:
             veh_id, veh_length, entry_time, exit_time, vType = traci.inductionloop.getVehicleData(detector)[0]
+            lane = traci.vehicle.getLaneID(vehicles[0])
+            logger.info(f"veh = {veh_id}, lane = {lane}, time ={int(simtime)-1},pos = {round(traci.vehicle.getLanePosition(veh_id),2)}")
             speed = traci.inductionloop.getLastStepMeanSpeed(detector)
             time = round(entry_time - 1, 2)
             #time = round(entry_time, 2)
@@ -628,6 +634,10 @@ def _last_times_sim_fcd( last_best_state:int, path:str , postfix:str):
     simulation_log = []
 
     while traci.simulation.getMinExpectedNumber() > 0:
+        for veh in traci.simulation.getDepartedIDList():
+            #traci.vehicle.changeLane(veh,1,100000) #time to stay in the lane
+            traci.vehicle.setSpeedMode(veh, 95)
+            #traci.vehicle.setLaneChangeMode(veh, 0)            
         traci.simulationStep()
         simtime = traci.simulation.getTime()
 
@@ -970,9 +980,9 @@ def _calibrate_single_vehicle(
         if no_speed:
             y_next = (time_error)**2 + 0.1*(1-row["speed_factor"])**2
         else:
-            y_next = (time_error)**2 + (speed_error)**2
-        #y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
-        #y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
+            y_next = (time_error)**2 + 2*(speed_error)**2
+            y_next = y_next - .5*(row["speed_factor"]-speed_factor_min)/(speed_factor_max-speed_factor_min)
+            y_next = y_next + (row['depart']-depart_min)/(depart_max-depart_min)
 
         opt.tell(x_next, y_next)          # Give result to optimizer
         #logger.info(f"Iter {i}: Input={x_next}, Error={y_next:.4f}, time_error={time_error},  speed_error={speed_error}")
@@ -1052,7 +1062,7 @@ def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str, ite
         raise
     
     traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
-    traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
+    #traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
     
     #traci.vehicle.setMaxSpeed(row["id"], row["speed_factor"] * maxspeed)
 

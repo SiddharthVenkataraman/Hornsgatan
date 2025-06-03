@@ -52,12 +52,19 @@ def calibrated_data(postfix:str, detector:str, pathin:str) -> pd.DataFrame:
     #calibrated_data = calibrated_data[calibrated_data['detector_id'] == detector]
     return calibrated_data
 
-def detector_mappings() -> Dict[str, Dict]:
+
+
+def detector_mappings(network_file: str) -> Dict[str, Dict]:
     """Return detector mappings for the simulation.
     
     Returns:
         Dictionary of detector mapping dictionaries
     """
+    route_e2w = mytools.shortest_path(source_edge="24225358#0", destination_edge="1243253622#0",
+                                      netfile=network_file) 
+    
+    route_w2e = mytools.shortest_path(source_edge="151884975#0", destination_edge="151884974#0",
+                                      netfile=network_file) 
     detector2lane = {
         "e2w_out": "1285834640_0",
         "e2w_in": "1285834640_1",
@@ -87,10 +94,17 @@ def detector_mappings() -> Dict[str, Dict]:
     }
     
     detector2route = {
-        "e2w_out": "24225358#0 1285834640 110107986#2 1243253630#0 98438064#0 1243253622#0",
-        "e2w_in": "24225358#0 1285834640 110107986#2 1243253630#0 98438064#0 1243253622#0",
-        "w2e_out": "151884975#0 1080999537#0 151884977#0 151884977#4 151884974#0",
-        "w2e_in": "151884975#0 1080999537#0 151884977#0 151884977#4 151884974#0",
+        "e2w_out": route_e2w,
+        "e2w_in": route_e2w,
+        "w2e_out": route_w2e,
+        "w2e_in": route_w2e,
+    }
+    
+    detector2traveltimetosensor = {
+        "e2w_out": 28,
+        "e2w_in": 28,
+        "w2e_out": 51,
+        "w2e_in": 51,
     }
     
     return {
@@ -98,7 +112,8 @@ def detector_mappings() -> Dict[str, Dict]:
         "detector2laneN": detector2laneN,
         "detector2from": detector2from,
         "detector2to": detector2to,
-        "detector2route": detector2route
+        "detector2route": detector2route,
+        "detector2traveltimetosensor": detector2traveltimetosensor,
     }
     
     
@@ -271,7 +286,7 @@ def run_sumo(sumo_config: str, detector: str,detector_mappings: Dict[str, Dict],
     path = "data/sim_intermediate_data/"
 
     sumo_binary = "sumo"  # Use "sumo-gui" if you want to visualize the simulation
-    traci.start([sumo_binary, "-c", sumo_config])
+    traci.start([sumo_binary, "-c", sumo_config, "--tls.all-off"])
     traci.route.add(f"{detector}_route", detector_mappings["detector2route"][detector].split())
     logger.info("SUMO simulation is started.")
     for index, row in trips.iterrows():
