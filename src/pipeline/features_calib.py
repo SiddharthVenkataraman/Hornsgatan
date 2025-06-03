@@ -22,6 +22,8 @@ import numpy as np
 from skopt.space import Integer
 import logging
 import csv
+from src.tools import mytools
+
 
 logger = logging.getLogger("calib")
 
@@ -113,12 +115,17 @@ def postfix(detector: str, date: str, number: int, init_number:int) -> str:
 
 # Detector mappings
 #@source
-def detector_mappings() -> Dict[str, Dict[str, Union[str, int]]]:
+def detector_mappings(network_file: str) -> Dict[str, Dict[str, Union[str, int]]]:
     """Return detector mappings for the simulation.
     
     Returns:
         Dictionary of detector mapping dictionaries
     """
+    route_e2w = mytools.shortest_path(source_edge="24225358#0", destination_edge="1243253622#0",
+                                      netfile=network_file) 
+    
+    route_w2e = mytools.shortest_path(source_edge="151884975#0", destination_edge="151884974#0",
+                                      netfile=network_file) 
     detector2lane = {
         "e2w_out": "1285834640_0",
         "e2w_in": "1285834640_1",
@@ -148,10 +155,10 @@ def detector_mappings() -> Dict[str, Dict[str, Union[str, int]]]:
     }
     
     detector2route = {
-        "e2w_out": "24225358#0 1285834640 110107986#2 1243253630#0 98438064#0 1243253622#0",
-        "e2w_in": "24225358#0 1285834640 110107986#2 1243253630#0 98438064#0 1243253622#0",
-        "w2e_out": "151884975#0 1080999537#0 151884977#0 151884977#4 151884974#0",
-        "w2e_in": "151884975#0 1080999537#0 151884977#0 151884977#4 151884974#0",
+        "e2w_out": route_e2w,
+        "e2w_in": route_e2w,
+        "w2e_out": route_w2e,
+        "w2e_in": route_w2e,
     }
     
     detector2traveltimetosensor = {
@@ -509,7 +516,7 @@ def _calibrate_single_vehicle_FCD(
         "depart": best_x[0]+depart_min,
         "departSpeed": maxspeed * round((best_x[1]/speed_factor_resolution),2) ,
         "speed_detector_real": row["speed_detector_real"]
-    }, simlog_list[best_index]
+    }, simlog_list[best_index], best_index
 
 
 
@@ -605,11 +612,7 @@ def _run_simulation_steps_FCD(row: dict, detector: str, path: str, postfix: str,
             #if not (traci.vehicle.getIDList()):
             #    simulation_log.append({"time": int(simtime)-1})
           
-        
-        
-        
         vehicles = traci.inductionloop.getLastStepVehicleIDs(detector)
-        
         if vehicles and vehicles[0] == row["id"]:
             veh_id, veh_length, entry_time, exit_time, vType = traci.inductionloop.getVehicleData(detector)[0]
             speed = traci.inductionloop.getLastStepMeanSpeed(detector)
@@ -619,6 +622,34 @@ def _run_simulation_steps_FCD(row: dict, detector: str, path: str, postfix: str,
             return time, speed, simulation_log
     
     return None
+
+def _last_times_sim_fcd( last_best_state:int, path:str , postfix:str):
+    traci.simulation.loadState(f"{path}simulation_{postfix}_{last_best_state}.sumo.state")
+    simulation_log = []
+
+    while traci.simulation.getMinExpectedNumber() > 0:
+        traci.simulationStep()
+        simtime = traci.simulation.getTime()
+
+        for veh in traci.vehicle.getIDList():
+                x, y = traci.vehicle.getPosition(veh)
+                lon, lat = traci.simulation.convertGeo(x, y)
+                #lon, lat = self.net.convertXY2LonLat(x, y)
+                simulation_log.append({"time": int(simtime)-1,
+                                       "id":veh,
+                                       "speedfactor": traci.vehicle.getSpeedFactor(veh),
+                                       "x":round(lon,6),
+                                       "y":round(lat,6),
+                                       "angle":round(traci.vehicle.getAngle(veh),2),
+                                       "speed":round(traci.vehicle.getSpeed(veh),2), 
+                                       "acceleration":round(traci.vehicle.getAcceleration(veh),2),
+                                       "pos":round(traci.vehicle.getLanePosition(veh),2),
+                                       "lane":traci.vehicle.getLaneID(veh),
+                                       "noise":round(traci.vehicle.getNoiseEmission(veh),2)})
+
+
+    
+    return simulation_log
 
 
 def calibrated_data_FCD(
@@ -709,9 +740,10 @@ def calibrated_data_FCD(
 
         #mylog = [] # Keep mylog for existing logic if needed later in the function
         step = 0
+        best_iter  = 0
 
         for index, row in trips.iterrows():
-            result, logsim_list = _calibrate_single_vehicle_FCD(dict(row), detector, maxspeed, path, postfix, iteration, mylog,
+            result, logsim_list, best_iter = _calibrate_single_vehicle_FCD(dict(row), detector, maxspeed, path, postfix, iteration, mylog,
                                                base_estimator, acq_func, n_initial_points, no_speed)
 
             # Calculate the delta values for the current vehicle
@@ -728,6 +760,11 @@ def calibrated_data_FCD(
                 #logger.info(log_row)
             #mylog.append(result) # Keep appending to mylog if needed for other logic
             step += 1
+            
+        last_logsim = _last_times_sim_fcd(last_best_state=best_iter ,path=path, postfix=postfix)
+        for log_row in last_logsim:
+            fcd_writer.writerow([log_row.get(h, "") for h in fcd_header])
+
 
     # The file is automatically closed when exiting the 'with' block.
     # The original code then converts mylog to a DataFrame and saves again.
