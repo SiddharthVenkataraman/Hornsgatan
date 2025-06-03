@@ -1,13 +1,13 @@
 date: "2020-01-02"
-detector: "w2e_in"
+detector: "e2w_out"
 path: "data/calibration_intermediate_data/"
 pathout: "data/calibration_data/"
 pathin: "data/daily_splitted_data/"
-iteration: 50
-init_number: 10
+iteration: 30
+init_number: 2
 network_file: "data/map/Hornsgatan.net.xml"
 base_estimator: "GP"
 acq_func: "LCB"
 n_initial_points: 5
-no_speed: true
+no_speed: false
 name: "GP_LCB_50_5"

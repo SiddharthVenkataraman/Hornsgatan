@@ -558,7 +558,7 @@ def _run_simulation_steps_FCD(row: dict, detector: str, path: str, postfix: str,
         raise
     
     traci.vehicle.setSpeedFactor(row["id"], row["speed_factor"])
-    traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
+    #traci.vehicle.setSpeed(row['id'], row["speed_factor"] * maxspeed)
     
     #traci.vehicle.setMaxSpeed(row["id"], row["speed_factor"] * maxspeed)
 
@@ -567,8 +567,12 @@ def _run_simulation_steps_FCD(row: dict, detector: str, path: str, postfix: str,
     
     while traci.simulation.getMinExpectedNumber() > 0:
         #print(f"step  = {traci.simulation.getTime()}  , depart  = {row["depart"]}")
-            
+        
         traci.simulationStep()
+        for veh in traci.simulation.getDepartedIDList():
+            traci.vehicle.changeLane(veh,row["departLane"],100000) #time to stay in the lane
+        #    traci.vehicle.setLaneChangeMode(veh, 0)
+
                     
         simtime = traci.simulation.getTime()
         if simtime == int(row["depart"])+1:
@@ -1004,6 +1008,7 @@ def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str, ite
         #traci.vehicle.setSpeedMode(row['id'], 95)
         row["departSpeed"] = row["speed_factor"] * maxspeed
         traci.vehicle.setLaneChangeMode(row['id'], 0)
+        #traci.vehicle.changeLine(row['id'],row["departLane"],100000) #time to stay in the lane
     except traci.TraCIException as e:
         logger.error(f"Error adding vehicle {row['id']}: {e}")
         traci.close()
@@ -1019,7 +1024,10 @@ def _run_simulation_steps(row: dict, detector: str, path: str, postfix: str, ite
         #print(f"step  = {traci.simulation.getTime()}  , depart  = {row["depart"]}")
             
         traci.simulationStep()
-                    
+        #for veh in traci.simulation.getDepartedIDList():
+            #traci.vehicle.changeLine(veh,row["departLane"],100000) #time to stay in the lane
+        #    traci.vehicle.setLaneChangeMode(veh, 0)
+
         simtime = traci.simulation.getTime()
         if simtime == int(row["depart"])+1:
             traci.simulation.saveState(f"{path}simulation_{postfix}_{iteration_number}.sumo.state")
