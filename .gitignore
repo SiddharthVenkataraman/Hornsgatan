@@ -40,3 +40,10 @@ data/calibration_data/*
 
 data/map/*
 !data/map/Hornsgatan.net.xml
+
+data/raw_data/*
+!data/raw_data/.gitkeep
+
+data/transform_raw_data/*
+!data/transform_raw_data/.gitkeep
+
