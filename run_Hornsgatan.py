@@ -176,15 +176,6 @@ def main():
         command_to_run = f"python main.py --pipeline import_data --config {config_import_data_path}"
         run_command_on_bash(command_to_run, hornsgatan_home, verbose)
 
-        # Move files in folder "Hornsgatan/data/daily_splitted_data/" to "Hornsgatan/data/daily_splitted_data/{simulation_name}/"
-        folder_from = os.path.join(hornsgatan_home, 'data', 'daily_splitted_data')
-        folder_to = os.path.join(hornsgatan_home, 'data', 'daily_splitted_data', simulation_name)
-        move_all_files_from_folder_to_folder(folder_from, folder_to)
-
-        # Delete all files in folder "Hornsgatan/data/transform_raw_data/"
-        folder_with_files_to_delete = os.path.join(hornsgatan_home, 'data', 'transform_raw_data')
-        delete_all_files_in_folder(folder_with_files_to_delete)
-
     if not (only_run_import_data or only_run_sim):
 
         ##########
@@ -192,10 +183,6 @@ def main():
         ##########
 
         print(f"Running code for executing --pipeline calib")
-
-        # Create folder for current simulation "{simulation_name}" under "Hornsgatan/data/calibration_data/"
-        folder_to_create = os.path.join(hornsgatan_home, 'data', 'calibration_data', simulation_name)
-        os.makedirs(folder_to_create, exist_ok=True)
 
         # Iterate through detector list
         for cur_detector in detector_list:
@@ -206,8 +193,8 @@ def main():
                 'date': date,  # MODIFY.
                 'detector': cur_detector,  # MODIFY.
                 'path': "data/calibration_intermediate_data/",
-                'pathout': f"data/calibration_data/{simulation_name}/",
-                'pathin': f"data/daily_splitted_data/{simulation_name}/",
+                'pathout': f"data/calibration_data/",
+                'pathin': f"data/daily_splitted_data/",
                 'iteration': 50,
                 'init_number': init_number,  # MODIFY. Number of vehicles considered. 0 = all vehicles
                 'network_file': "data/map/Hornsgatan.net.xml",
@@ -226,21 +213,11 @@ def main():
                 command_to_run += ' --fcd'  # Add --fcd option to calib if required
             run_command_on_bash(command_to_run, hornsgatan_home, verbose)
 
-            # Move contents of folder "Hornsgatan/data/calibration_intermediate_data/" to
-            # "Hornsgatan/data/calibration_intermediate_data/{simulation_name}/"
-            folder_from = os.path.join(hornsgatan_home, 'data', 'calibration_intermediate_data')
-            folder_to = os.path.join(hornsgatan_home, 'data', 'calibration_intermediate_data', simulation_name)
-            move_all_files_from_folder_to_folder(folder_from, folder_to)
-
     if not (only_run_import_data or only_run_calib):
 
         ##########
         # B) --pipeline sim
         ##########
-
-        # Create folder for current simulation "TEST" under "Hornsgatan/data/sim_data/"
-        folder_to_create = os.path.join(hornsgatan_home, 'data', 'sim_data', simulation_name)
-        os.makedirs(folder_to_create, exist_ok=True)
 
         # Iterate through detector list
         for cur_detector in detector_list:
@@ -251,8 +228,8 @@ def main():
                 'date': date,  # MODIFY.
                 'detector': cur_detector,  # MODIFY.
                 'path': "data/sim_intermediate_data/",
-                'pathout': f"data/sim_data/{simulation_name}/",
-                'pathin': f"data/calibration_data/{simulation_name}/",
+                'pathout': f"data/sim_data/",
+                'pathin': f"data/calibration_data/",
                 'init_number': init_number,  # MODIFY. Number of vehicles considered. 0 = all vehicles
                 'network_file': "data/map/Hornsgatan.net.xml",
                 'hornsgatan_home': hornsgatan_home,
@@ -264,20 +241,42 @@ def main():
             command_to_run = f"python main.py --pipeline sim --config {config_sim_path}"
             run_command_on_bash(command_to_run, hornsgatan_home, verbose)
 
-            # Move files in "Hornsgatan/data/sim_intermediate_data/" to
-            # "Hornsgatan/data/sim_intermediate_data/TEST/"
-            folder_from = os.path.join(hornsgatan_home, 'data', 'sim_intermediate_data')
-            folder_to = os.path.join(hornsgatan_home, 'data', 'sim_intermediate_data', simulation_name)
-            move_all_files_from_folder_to_folder(folder_from, folder_to)
+        # Move files in folder "Hornsgatan/data/daily_splitted_data/" to "Hornsgatan/data/daily_splitted_data/{simulation_name}/"
+        folder_from = os.path.join(hornsgatan_home, 'data', 'daily_splitted_data')
+        folder_to = os.path.join(hornsgatan_home, 'data', 'daily_splitted_data', simulation_name)
+        move_all_files_from_folder_to_folder(folder_from, folder_to)
 
-            # Convert fcd file from .xml to .csv
-            # Import required function
-            if hornsgatan_home not in sys.path:
-                sys.path.insert(0, hornsgatan_home)
-            from src.tools import mytools
-            path_to_xml_file_directory = folder_to+os.sep
-            postfix = f"{cur_detector}_{date}" if init_number < 1 else f"{cur_detector}_{date}_{init_number}"
-            mytools.fcd_xml_to_csv(path_to_xml_file_directory, postfix)
+        # Delete all files in folder "Hornsgatan/data/transform_raw_data/"
+        folder_with_files_to_delete = os.path.join(hornsgatan_home, 'data', 'transform_raw_data')
+        delete_all_files_in_folder(folder_with_files_to_delete)
+
+        # Create folder for current simulation "{simulation_name}" under "Hornsgatan/data/calibration_data/"
+        folder_to_create = os.path.join(hornsgatan_home, 'data', 'calibration_data', simulation_name)
+        os.makedirs(folder_to_create, exist_ok=True)
+
+        # Move contents of folder "Hornsgatan/data/calibration_intermediate_data/" to
+        # "Hornsgatan/data/calibration_intermediate_data/{simulation_name}/"
+        folder_from = os.path.join(hornsgatan_home, 'data', 'calibration_intermediate_data')
+        folder_to = os.path.join(hornsgatan_home, 'data', 'calibration_intermediate_data', simulation_name)
+        move_all_files_from_folder_to_folder(folder_from, folder_to)
+
+        # Create folder for current simulation "TEST" under "Hornsgatan/data/sim_data/"
+        folder_to_create = os.path.join(hornsgatan_home, 'data', 'sim_data', simulation_name)
+        os.makedirs(folder_to_create, exist_ok=True)
+        # Move files in "Hornsgatan/data/sim_intermediate_data/" to
+        # "Hornsgatan/data/sim_intermediate_data/TEST/"
+        folder_from = os.path.join(hornsgatan_home, 'data', 'sim_intermediate_data')
+        folder_to = os.path.join(hornsgatan_home, 'data', 'sim_intermediate_data', simulation_name)
+        move_all_files_from_folder_to_folder(folder_from, folder_to)
+
+        # Convert fcd file from .xml to .csv
+        # Import required function
+        if hornsgatan_home not in sys.path:
+            sys.path.insert(0, hornsgatan_home)
+        from src.tools import mytools
+        path_to_xml_file_directory = folder_to + os.sep
+        postfix = f"{cur_detector}_{date}" if init_number < 1 else f"{cur_detector}_{date}_{init_number}"
+        mytools.fcd_xml_to_csv(path_to_xml_file_directory, postfix)
 
     return 0
 
