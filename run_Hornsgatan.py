@@ -299,11 +299,6 @@ def main():
             folder_to = os.path.join(hornsgatan_home, 'data', 'sim_intermediate_data', simulation_name)
             move_all_files_from_folder_to_folder(folder_from, folder_to)
 
-            # Move log files
-            folder_from = os.path.join(hornsgatan_home, 'logs')
-            folder_to = os.path.join(hornsgatan_home, 'data', 'sim_data', simulation_name)
-            move_all_files_from_folder_to_folder(folder_from, folder_to, prefix="pipeline_sim", suffix="log")
-
             # Convert fcd file from .xml to .csv
             # Import required function
             if hornsgatan_home not in sys.path:
@@ -312,6 +307,11 @@ def main():
             path_to_xml_file_directory = folder_to+os.sep
             postfix = f"{cur_detector}_{date}" if init_number < 1 else f"{cur_detector}_{date}_{init_number}"
             mytools.fcd_xml_to_csv(path_to_xml_file_directory, postfix)
+
+            # Move log files
+            folder_from = os.path.join(hornsgatan_home, 'logs')
+            folder_to = os.path.join(hornsgatan_home, 'data', 'sim_data', simulation_name)
+            move_all_files_from_folder_to_folder(folder_from, folder_to, prefix="pipeline_sim", suffix="log")
 
     return 0
 
