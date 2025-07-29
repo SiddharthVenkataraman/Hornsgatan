@@ -87,7 +87,7 @@ def create_yaml_file(data, path_to_file):
     return 0
 
 
-def move_all_files_from_folder_to_folder(folder_from, folder_to):
+def move_all_files_from_folder_to_folder(folder_from, folder_to, prefix=None, suffix=None):
     """
     Move ALL files from folder_from to folder_to
     """
@@ -96,7 +96,27 @@ def move_all_files_from_folder_to_folder(folder_from, folder_to):
 
     for cur_file in os.listdir(folder_from):
         if os.path.isfile(os.path.join(folder_from, cur_file)) and cur_file[0] != '.':
-            shutil.move(os.path.join(folder_from, cur_file), os.path.join(folder_to, cur_file))
+            if prefix is None and suffix is None:
+                shutil.move(os.path.join(folder_from, cur_file), os.path.join(folder_to, cur_file))
+
+            else:
+                if prefix is not None:
+                    if len(cur_file) >= len(prefix) and cur_file[:len(prefix)] == prefix:
+                        prefix_fit = 1
+                    else:
+                        prefix_fit = 0
+                else:
+                    prefix_fit = 1
+                if suffix is not None:
+                    if len(cur_file) >= len(suffix) and cur_file[-1*len(suffix):] == suffix:
+                        suffix_fit = 1
+                    else:
+                        suffix_fit = 0
+                else:
+                    suffix_fit = 1
+
+                if prefix_fit and suffix_fit:
+                    shutil.move(os.path.join(folder_from, cur_file), os.path.join(folder_to, cur_file))
 
     return 0
 
@@ -236,6 +256,11 @@ def main():
             folder_to = os.path.join(hornsgatan_home, 'data', 'calibration_intermediate_data', simulation_name)
             move_all_files_from_folder_to_folder(folder_from, folder_to)
 
+            # Move log files
+            folder_from = os.path.join(hornsgatan_home, 'logs')
+            folder_to = os.path.join(hornsgatan_home, 'data', 'calibration_data', simulation_name)
+            move_all_files_from_folder_to_folder(folder_from, folder_to, prefix="pipeline_calib", suffix="log")
+
     if not (only_run_import_data or only_run_calib):
 
         ##########
@@ -273,6 +298,11 @@ def main():
             folder_from = os.path.join(hornsgatan_home, 'data', 'sim_intermediate_data')
             folder_to = os.path.join(hornsgatan_home, 'data', 'sim_intermediate_data', simulation_name)
             move_all_files_from_folder_to_folder(folder_from, folder_to)
+
+            # Move log files
+            folder_from = os.path.join(hornsgatan_home, 'logs')
+            folder_to = os.path.join(hornsgatan_home, 'data', 'sim_data', simulation_name)
+            move_all_files_from_folder_to_folder(folder_from, folder_to, prefix="pipeline_sim", suffix="log")
 
             # Convert fcd file from .xml to .csv
             # Import required function
