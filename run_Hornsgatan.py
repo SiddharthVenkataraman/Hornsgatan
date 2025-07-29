@@ -122,6 +122,7 @@ def main():
     parser.add_argument('--only_run_calib', action='store_true', help='Run only calib pipeline')
     parser.add_argument('--only_run_sim', action='store_true', help='Run only sim pipeline')
     parser.add_argument('--verbose', action='store_true', help='Enable verbose output')
+    parser.add_argument('--detector_list', action='store_true', help='If custom detector list to be used')
 
     args, _ = parser.parse_known_args()
 
@@ -133,6 +134,9 @@ def main():
             config = yaml.safe_load(f)
     else:
         raise Exception("No config file specified")
+
+    if args.detector_list:
+        config['detector_list'] = args.detector_list
 
     hornsgatan_home = config['hornsgatan_home']
     hornsgatan_input = config['hornsgatan_input']
